@@ -1,0 +1,1 @@
+# Face recognition app for facial recognition functionality 
