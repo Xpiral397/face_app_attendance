@@ -2,9 +2,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Faculty and Department endpoints
-    path('faculties/', views.FacultyListView.as_view(), name='faculty-list'),
-    path('departments/', views.DepartmentListView.as_view(), name='department-list'),
+    # College and Department endpoints
+    path('colleges/', views.CollegeListCreateView.as_view(), name='college-list-create'),
+    path('colleges/<int:pk>/', views.CollegeDetailView.as_view(), name='college-detail'),
+    path('departments/', views.DepartmentListCreateView.as_view(), name='department-list-create'),
+    path('departments/<int:pk>/', views.DepartmentDetailView.as_view(), name='department-detail'),
     
     # Course management endpoints
     path('courses/', views.CourseListCreateView.as_view(), name='course-list-create'),

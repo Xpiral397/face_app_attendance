@@ -7,8 +7,11 @@ interface User {
   email: string
   username: string
   full_name: string
-  role: 'admin' | 'student'
+  role: 'admin' | 'lecturer' | 'student'
   student_id?: string
+  lecturer_id?: string
+  department?: any
+  level?: string
   is_active: boolean
   created_at: string
 }
@@ -24,14 +27,26 @@ interface RegisterCredentials {
   full_name: string
   password: string
   confirm_password: string
-  role: 'admin' | 'student'
+  role: 'admin' | 'lecturer' | 'student'
   student_id?: string
+  lecturer_id?: string
+  department?: number | null
+  level?: string
+  referral_code?: string
 }
 
 interface AuthToken {
   access: string
   refresh: string
   user: User
+  message?: string
+}
+
+interface AuthResponse {
+  user: User
+  access?: string
+  refresh?: string
+  message?: string
 }
 
 interface AuthContextType {
@@ -42,6 +57,7 @@ interface AuthContextType {
   logout: () => void
   isAuthenticated: boolean
   isAdmin: boolean
+  isLecturer: boolean
   isStudent: boolean
 }
 
@@ -121,12 +137,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
 
       if (response.ok) {
-        const data: AuthToken = await response.json()
-        setUser(data.user)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        localStorage.setItem('access_token', data.access)
-        localStorage.setItem('refresh_token', data.refresh)
-        return { success: true }
+        const data: AuthResponse = await response.json()
+        
+        // Check if this is a pending approval response (admin/lecturer)
+        if (data.message && data.message.includes('wait for admin approval')) {
+          return { success: true, message: data.message }
+        }
+        
+        // For students or approved accounts, set up the session
+        if (data.access && data.refresh) {
+          setUser(data.user)
+          localStorage.setItem('user', JSON.stringify(data.user))
+          localStorage.setItem('access_token', data.access)
+          localStorage.setItem('refresh_token', data.refresh)
+          return { success: true, message: data.message }
+        }
+        
+        return { success: true, message: data.message || 'Registration successful' }
       } else {
         const errorData = await response.json()
         return { 
@@ -155,6 +182,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Computed properties based on user state
   const isAuthenticated = !!user
   const isAdmin = user?.role === 'admin'
+  const isLecturer = user?.role === 'lecturer'
   const isStudent = user?.role === 'student'
 
   const value: AuthContextType = {
@@ -165,6 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     isAuthenticated,
     isAdmin,
+    isLecturer,
     isStudent,
   }
 

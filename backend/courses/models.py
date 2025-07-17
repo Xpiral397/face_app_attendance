@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
-class Faculty(models.Model):
+class College(models.Model):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=10, unique=True)  # e.g., "SCI", "ENG"
     description = models.TextField(blank=True)
@@ -13,8 +13,8 @@ class Faculty(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'faculties'
-        verbose_name_plural = 'Faculties'
+        db_table = 'colleges'
+        verbose_name_plural = 'Colleges'
     
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -22,7 +22,7 @@ class Faculty(models.Model):
 class Department(models.Model):
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=10, unique=True)  # e.g., "CSC", "MTH"
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='departments')
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='departments')
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

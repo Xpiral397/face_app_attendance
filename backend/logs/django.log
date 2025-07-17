@@ -167,3 +167,1484 @@ C:\Users\USER\AIFaceRecognized\backend\attendance_system\settings.py changed, re
 Watching for file changes with StatReloader
 C:\Users\USER\AIFaceRecognized\backend\attendance_system\urls.py changed, reloading.
 Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"OPTIONS /api/attendance/dashboard-stats/ HTTP/1.1" 200 0
+"OPTIONS /api/attendance/dashboard-stats/ HTTP/1.1" 200 0
+Unauthorized: /api/attendance/dashboard-stats/
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 401 183
+Unauthorized: /api/attendance/dashboard-stats/
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 401 183
+Unauthorized: /api/attendance/dashboard-stats/
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 401 183
+Unauthorized: /api/attendance/dashboard-stats/
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 44
+"OPTIONS /api/auth/register/ HTTP/1.1" 200 0
+"POST /api/auth/register/ HTTP/1.1" 201 685
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"OPTIONS /api/courses/dashboard/admin/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/dashboard/admin/ HTTP/1.1" 200 0
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 106
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 106
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 106
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 106
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/faculties/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/faculties/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/faculties/ HTTP/1.1" 200 386
+"GET /api/courses/departments/ HTTP/1.1" 200 632
+"GET /api/courses/faculties/ HTTP/1.1" 200 386
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 1342
+"GET /api/courses/departments/ HTTP/1.1" 200 632
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 1342
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 106
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 106
+"OPTIONS /api/users/users/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/users/users/?page=1 HTTP/1.1" 200 0
+"GET /api/users/users/?page=1 HTTP/1.1" 200 1410
+"GET /api/users/users/?page=1 HTTP/1.1" 200 1410
+"OPTIONS /api/courses/notifications/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/notifications/?page=1 HTTP/1.1" 200 0
+"GET /api/courses/notifications/?page=1 HTTP/1.1" 200 52
+"GET /api/courses/notifications/?page=1 HTTP/1.1" 200 52
+"GET /api/courses/faculties/ HTTP/1.1" 200 386
+"GET /api/courses/departments/ HTTP/1.1" 200 632
+"GET /api/courses/faculties/ HTTP/1.1" 200 386
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 1342
+"GET /api/courses/departments/ HTTP/1.1" 200 632
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 1342
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/faculties/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/faculties/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/admin/
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/admin/
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 401 183
+"OPTIONS /api/courses/sessions/?page=1 HTTP/1.1" 200 0
+Unauthorized: /api/courses/sessions/
+"OPTIONS /api/courses/sessions/?page=1 HTTP/1.1" 200 0
+"GET /api/courses/sessions/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/sessions/
+"GET /api/courses/sessions/?page=1 HTTP/1.1" 401 183
+"OPTIONS /api/attendance/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/attendance/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/attendance/stats/ HTTP/1.1" 200 0
+"OPTIONS /api/attendance/stats/ HTTP/1.1" 200 0
+Unauthorized: /api/attendance/
+Unauthorized: /api/attendance/stats/
+"GET /api/attendance/?page=1 HTTP/1.1" 401 183
+"GET /api/attendance/stats/ HTTP/1.1" 401 183
+Unauthorized: /api/attendance/
+"GET /api/attendance/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/attendance/stats/
+"GET /api/attendance/stats/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/faculties/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/faculties/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/faculties/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/faculties/
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/faculties/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/faculties/
+"GET /api/courses/faculties/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/admin/
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/admin/
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 401 183
+C:\Users\USER\AIFaceRecognized\backend\courses\models.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\admin.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Method Not Allowed: /api/auth/login/
+"GET /api/auth/login/ HTTP/1.1" 405 40
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 48
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 44
+Unauthorized: /api/auth/profile/
+"GET /api/auth/profile/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/departments/
+"GET /api/courses/departments/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/courses/
+"GET /api/courses/courses/ HTTP/1.1" 401 58
+Unauthorized: /api/attendance/
+"GET /api/attendance/ HTTP/1.1" 401 58
+Unauthorized: /api/attendance/stats/
+"GET /api/attendance/stats/ HTTP/1.1" 401 58
+Unauthorized: /api/attendance/dashboard-stats/
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/dashboard/admin/
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/dashboard/lecturer/
+"GET /api/courses/dashboard/lecturer/ HTTP/1.1" 401 58
+Unauthorized: /api/reports/list/
+"GET /api/reports/list/ HTTP/1.1" 401 58
+Unauthorized: /api/reports/stats/
+"GET /api/reports/stats/ HTTP/1.1" 401 58
+Unauthorized: /api/reports/summary/
+"GET /api/reports/summary/ HTTP/1.1" 401 58
+Bad Request: /api/auth/login/
+- Broken pipe from ('127.0.0.1', 57520)
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /admin/ HTTP/1.1" 302 0
+"GET /admin/login/?next=/admin/ HTTP/1.1" 200 4178
+Unauthorized: /api/auth/users/
+"GET /api/auth/users/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+Unauthorized: /api/attendance/
+"GET /api/attendance/ HTTP/1.1" 401 58
+Unauthorized: /api/attendance/
+"GET /api/attendance/ HTTP/1.1" 401 58
+- Broken pipe from ('127.0.0.1', 51419)
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 88
+"POST /api/auth/register/ HTTP/1.1" 201 671
+"POST /api/auth/login/ HTTP/1.1" 200 671
+"GET /api/auth/users/ HTTP/1.1" 200 232
+"GET /api/auth/profile/ HTTP/1.1" 200 180
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/departments/ HTTP/1.1" 200 4148
+"GET /api/courses/courses/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/attendance/ HTTP/1.1" 200 52
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/dashboard-stats/ HTTP/1.1" 200 167
+"GET /api/face/stats/ HTTP/1.1" 200 115
+"GET /api/face/logs/ HTTP/1.1" 200 21
+"GET /api/face/logs/ HTTP/1.1" 200 21
+Forbidden: /api/reports/stats/
+"GET /api/reports/stats/ HTTP/1.1" 403 45
+"GET /api/reports/summary/ HTTP/1.1" 200 208
+Forbidden: /api/reports/list/
+"GET /api/reports/list/ HTTP/1.1" 403 45
+Forbidden: /api/reports/list/
+"GET /api/reports/list/ HTTP/1.1" 403 45
+Forbidden: /api/reports/stats/
+"GET /api/reports/stats/ HTTP/1.1" 403 45
+Bad Request: /api/auth/register/
+"POST /api/auth/register/ HTTP/1.1" 400 102
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 44
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 671
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 76
+"OPTIONS /api/courses/dashboard/student/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/dashboard/student/ HTTP/1.1" 200 0
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"OPTIONS /api/face/attendance/ HTTP/1.1" 200 0
+Bad Request: /api/face/attendance/
+"POST /api/face/attendance/ HTTP/1.1" 400 67
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+Bad Request: /api/face/attendance/
+"POST /api/face/attendance/ HTTP/1.1" 400 67
+Bad Request: /api/face/attendance/
+"POST /api/face/attendance/ HTTP/1.1" 400 67
+Bad Request: /api/face/attendance/
+"POST /api/face/attendance/ HTTP/1.1" 400 67
+"OPTIONS /api/face/register/ HTTP/1.1" 200 0
+"POST /api/face/register/ HTTP/1.1" 200 172
+"POST /api/face/attendance/ HTTP/1.1" 200 150
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"OPTIONS /api/courses/enrollments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/enrollments/ HTTP/1.1" 200 0
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"OPTIONS /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+"OPTIONS /api/courses/assignments/?semester=First&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?semester=First&academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/ HTTP/1.1" 401 107
+"POST /api/auth/login/ HTTP/1.1" 200 671
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/enrollments/
+"GET /api/courses/enrollments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/enrollments/
+"GET /api/courses/enrollments/ HTTP/1.1" 401 183
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+Unauthorized: /api/courses/sessions/
+"GET /api/courses/sessions/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/sessions/
+"GET /api/courses/sessions/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?semester=First&academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+"OPTIONS /api/courses/assignments/?semester=First&academic_year=2023%2F2024&page=1 HTTP/1.1" 200 0
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?semester=First&academic_year=2023%2F2024&page=1 HTTP/1.1" 401 183
+"POST /api/auth/login/ HTTP/1.1" 200 671
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 76
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 52
+"GET /api/courses/assignments/?semester=First&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 52
+"OPTIONS /api/courses/assignments/?semester=Second&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+"GET /api/courses/assignments/?semester=Second&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 52
+"OPTIONS /api/courses/assignments/?semester=Summer&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+"GET /api/courses/assignments/?semester=Summer&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 52
+"OPTIONS /api/attendance/?page=1 HTTP/1.1" 200 0
+"GET /api/attendance/?page=1 HTTP/1.1" 200 307
+"OPTIONS /api/attendance/stats/ HTTP/1.1" 200 0
+"OPTIONS /api/attendance/stats/ HTTP/1.1" 200 0
+"GET /api/attendance/?page=1 HTTP/1.1" 200 307
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"OPTIONS /api/courses/notifications/?page=1 HTTP/1.1" 200 0
+"GET /api/courses/notifications/?page=1 HTTP/1.1" 200 52
+"OPTIONS /api/courses/notifications/?page=1 HTTP/1.1" 200 0
+"GET /api/courses/notifications/?page=1 HTTP/1.1" 200 52
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+"POST /api/auth/login/ HTTP/1.1" 200 671
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 76
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"OPTIONS /api/courses/enrollments/?status=approved HTTP/1.1" 200 0
+"OPTIONS /api/courses/enrollments/?status=approved HTTP/1.1" 200 0
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"GET /api/courses/assignments/?semester=First&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"OPTIONS /api/courses/assignments/?semester=First&academic_year=2025%2F2026&page=1 HTTP/1.1" 200 0
+"GET /api/courses/assignments/?semester=First&academic_year=2025%2F2026&page=1 HTTP/1.1" 200 951
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/sessions/ HTTP/1.1" 200 52
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/?status=approved HTTP/1.1" 200 52
+"OPTIONS /api/courses/enrollments/?status=pending HTTP/1.1" 200 0
+"GET /api/courses/enrollments/?status=pending HTTP/1.1" 200 52
+"OPTIONS /api/courses/enrollments/?status=withdrawn HTTP/1.1" 200 0
+"GET /api/courses/enrollments/?status=withdrawn HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"OPTIONS /api/courses/assignments/?academic_year=2025%2F2026&page=1 HTTP/1.1" 200 0
+"GET /api/courses/assignments/?academic_year=2025%2F2026&page=1 HTTP/1.1" 200 951
+"OPTIONS /api/courses/assignments/?academic_year=2023%2F2024&page=1 HTTP/1.1" 200 0
+"GET /api/courses/assignments/?academic_year=2023%2F2024&page=1 HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 2106
+C:\Users\USER\AIFaceRecognized\backend\courses\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?semester=First&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2025%2F2026&page=1 HTTP/1.1" 200 3387
+"GET /api/courses/assignments/?academic_year=2023%2F2024&page=1 HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"POST /api/auth/login/ HTTP/1.1" 200 696
+"GET /api/courses/assignments/?academic_year=2023%2F2024&page=1 HTTP/1.1" 200 52
+"GET /api/courses/assignments/ HTTP/1.1" 200 11117
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/enrollments/ HTTP/1.1" 200 7805
+"GET /api/courses/sessions/ HTTP/1.1" 200 30692
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+"OPTIONS /api/courses/dashboard/student/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/dashboard/student/ HTTP/1.1" 200 0
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/enrollments/
+"GET /api/courses/enrollments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/enrollments/
+"GET /api/courses/enrollments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/assignments/
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/dashboard/student/
+"GET /api/courses/dashboard/student/ HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 671
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 76
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 89
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?semester=Summer&academic_year=2024%2F2025&page=1 HTTP/1.1" 200 52
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 696
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 7769
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"OPTIONS /api/courses/enrollments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/enrollments/ HTTP/1.1" 200 0
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/enrollments/ HTTP/1.1" 200 52
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"OPTIONS /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 0
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2025%2F2026&page=1 HTTP/1.1" 200 3387
+"GET /api/courses/assignments/?academic_year=2023%2F2024&page=1 HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/assignments/?academic_year=2023%2F2024&page=1 HTTP/1.1" 200 52
+"GET /api/courses/assignments/?academic_year=2025%2F2026&page=1 HTTP/1.1" 200 3387
+"GET /api/courses/assignments/?academic_year=2024%2F2025&page=1 HTTP/1.1" 200 7780
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+"GET /api/courses/dashboard/student/ HTTP/1.1" 200 108
+C:\Users\USER\AIFaceRecognized\backend\accounts\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/register/ HTTP/1.1" 200 0
+"POST /api/auth/register/ HTTP/1.1" 201 709
+"OPTIONS /api/courses/dashboard/admin/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/dashboard/admin/ HTTP/1.1" 200 0
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"GET /api/courses/dashboard/admin/ HTTP/1.1" 200 15724
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/courses/
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/courses/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/courses/
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/courses/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 709
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"OPTIONS /api/accounts/users/ HTTP/1.1" 200 0
+"OPTIONS /api/accounts/users/ HTTP/1.1" 200 0
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/ HTTP/1.1" 404 3204
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/ HTTP/1.1" 404 3204
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/ HTTP/1.1" 404 3204
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"GET /api/courses/colleges/ HTTP/1.1" 200 1085
+"POST /api/courses/colleges/ HTTP/1.1" 201 143
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"POST /api/auth/login/ HTTP/1.1" 200 709
+"POST /api/auth/login/ HTTP/1.1" 200 709
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"OPTIONS /api/notifications/ HTTP/1.1" 200 0
+"OPTIONS /api/notifications/ HTTP/1.1" 200 0
+Not Found: /api/notifications/
+"GET /api/notifications/ HTTP/1.1" 404 3201
+Not Found: /api/notifications/
+"GET /api/notifications/ HTTP/1.1" 404 3201
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/accounts/users/?role=lecturer HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/1/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/1/ HTTP/1.1" 200 0
+"OPTIONS /api/accounts/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/courses/courses/4/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/4/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/4/ HTTP/1.1" 200 684
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/courses/4/ HTTP/1.1" 200 684
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/courses/courses/2/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/2/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/courses/courses/?department=2&page=1 HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/?department=2&page=1 HTTP/1.1" 200 736
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/courses/courses/?college=3&page=1 HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?college=3&page=1 HTTP/1.1" 200 7677
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/accounts/users/
+"GET /api/accounts/users/?role=lecturer HTTP/1.1" 404 3218
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+Unauthorized: /api/courses/sessions/
+"GET /api/courses/sessions/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/courses/
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/courses/departments/
+"GET /api/courses/courses/?page=1 HTTP/1.1" 401 183
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"POST /api/auth/login/ HTTP/1.1" 200 709
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/users/
+"GET /api/users/?role=lecturer HTTP/1.1" 404 4755
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Not Found: /api/users/
+"GET /api/users/?role=lecturer HTTP/1.1" 404 4755
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/users/
+"GET /api/users/?role=lecturer HTTP/1.1" 404 4755
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/users/
+"GET /api/users/?role=lecturer HTTP/1.1" 404 4755
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+Not Found: /api/users/
+"GET /api/users/?role=lecturer HTTP/1.1" 404 4755
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/1/ HTTP/1.1" 200 706
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"OPTIONS /api/users/users/ HTTP/1.1" 200 0
+Unauthorized: /api/users/users/
+"OPTIONS /api/users/users/ HTTP/1.1" 200 0
+"GET /api/users/users/ HTTP/1.1" 401 183
+Unauthorized: /api/users/users/
+"GET /api/users/users/ HTTP/1.1" 401 183
+"POST /api/auth/login/ HTTP/1.1" 200 709
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+C:\Users\USER\AIFaceRecognized\backend\courses\models.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+Unauthorized: /api/users/users/
+Unauthorized: /api/courses/departments/
+"GET /api/users/users/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 709
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 5145
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Watching for file changes with StatReloader
+"OPTIONS /api/users/users/ HTTP/1.1" 200 0
+Unauthorized: /api/courses/departments/
+Unauthorized: /api/users/users/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"GET /api/users/users/ HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 90
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 90
+Bad Request: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 400 90
+"POST /api/auth/login/ HTTP/1.1" 200 851
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/2/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/2/ HTTP/1.1" 200 0
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Bad Request: /api/courses/courses/2/
+"PUT /api/courses/courses/2/ HTTP/1.1" 400 45
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Bad Request: /api/courses/courses/2/
+"PUT /api/courses/courses/2/ HTTP/1.1" 400 45
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/courses/2/ HTTP/1.1" 200 703
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+Internal Server Error: /api/courses/courses/2/
+Traceback (most recent call last):
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\generics.py", line 285, in put
+    return self.update(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\mixins.py", line 68, in update
+    self.perform_update(serializer)
+  File "C:\Users\USER\AIFaceRecognized\backend\courses\views.py", line 118, in perform_update
+    serializer.save()
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 207, in save
+    self.instance = self.update(self.instance, validated_data)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\rest_framework\serializers.py", line 1004, in update
+    setattr(instance, attr, value)
+  File "C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\django\db\models\fields\related_descriptors.py", line 266, in __set__
+    raise ValueError(
+ValueError: Cannot assign "1": "Course.department" must be a "Department" instance.
+"PUT /api/courses/courses/2/ HTTP/1.1" 500 141683
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"OPTIONS /api/auth/referral-codes/ HTTP/1.1" 200 0
+"OPTIONS /api/auth/users/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"OPTIONS /api/courses/departments/?college=2 HTTP/1.1" 200 0
+"GET /api/courses/departments/?college=2 HTTP/1.1" 200 1421
+"OPTIONS /api/courses/courses/?department=11 HTTP/1.1" 200 0
+"GET /api/courses/courses/?department=11 HTTP/1.1" 200 52
+"OPTIONS /api/courses/departments/?college=1 HTTP/1.1" 200 0
+"GET /api/courses/departments/?college=1 HTTP/1.1" 200 1653
+"OPTIONS /api/courses/courses/?department=2 HTTP/1.1" 200 0
+"GET /api/courses/courses/?department=2 HTTP/1.1" 200 736
+Bad Request: /api/auth/referral-codes/
+"POST /api/auth/referral-codes/ HTTP/1.1" 400 42
+C:\Users\USER\AIFaceRecognized\backend\courses\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Unauthorized: /api/users/users/
+Unauthorized: /api/courses/departments/
+"GET /api/users/users/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/auth/referral-codes/
+Unauthorized: /api/auth/users/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/auth/referral-codes/ HTTP/1.1" 401 183
+"GET /api/auth/users/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+Unauthorized: /api/auth/referral-codes/
+Unauthorized: /api/auth/users/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+"GET /api/auth/referral-codes/ HTTP/1.1" 401 183
+"GET /api/auth/users/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 58
+"POST /api/auth/login/ HTTP/1.1" 200 851
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"OPTIONS /api/users/users/ HTTP/1.1" 200 0
+Unauthorized: /api/courses/departments/
+"OPTIONS /api/users/users/ HTTP/1.1" 200 0
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/users/users/
+Unauthorized: /api/courses/departments/
+"GET /api/users/users/ HTTP/1.1" 401 183
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+Unauthorized: /api/users/users/
+"GET /api/users/users/ HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 851
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"OPTIONS /api/auth/pending-users/ HTTP/1.1" 200 0
+"OPTIONS /api/auth/pending-users/ HTTP/1.1" 200 0
+"GET /api/auth/pending-users/ HTTP/1.1" 200 5481
+"GET /api/auth/pending-users/ HTTP/1.1" 200 5481
+"GET /api/auth/pending-users/ HTTP/1.1" 200 5481
+"GET /api/auth/pending-users/ HTTP/1.1" 200 5481
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"OPTIONS /api/reports/attendance/?start_date=2025-06-17&end_date=2025-07-17 HTTP/1.1" 200 0
+"OPTIONS /api/reports/attendance/?start_date=2025-06-17&end_date=2025-07-17 HTTP/1.1" 200 0
+Not Found: /api/reports/attendance/
+"GET /api/reports/attendance/?start_date=2025-06-17&end_date=2025-07-17 HTTP/1.1" 404 4749
+Not Found: /api/reports/attendance/
+"GET /api/reports/attendance/?start_date=2025-06-17&end_date=2025-07-17 HTTP/1.1" 404 4749
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/?page=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/courses/?page=1 HTTP/1.1" 200 7677
+Not Found: /api/reports/attendance/
+"GET /api/reports/attendance/?start_date=2025-06-17&end_date=2025-07-17 HTTP/1.1" 404 4749
+Not Found: /api/reports/attendance/
+"GET /api/reports/attendance/?start_date=2025-06-17&end_date=2025-07-17 HTTP/1.1" 404 4749
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/ HTTP/1.1" 200 6946
+"GET /api/auth/pending-users/ HTTP/1.1" 200 5481
+"GET /api/auth/pending-users/ HTTP/1.1" 200 5481
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/departments/?college=1 HTTP/1.1" 200 1653
+"GET /api/courses/courses/?department=2 HTTP/1.1" 200 736
+"OPTIONS /api/courses/assignments/ HTTP/1.1" 200 0
+"POST /api/courses/assignments/ HTTP/1.1" 201 1095
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"OPTIONS /api/users/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"OPTIONS /api/courses/departments/?college=3 HTTP/1.1" 200 0
+"GET /api/courses/departments/?college=3 HTTP/1.1" 200 1477
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"GET /api/courses/sessions/ HTTP/1.1" 200 30787
+"OPTIONS /api/courses/courses/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/ HTTP/1.1" 200 0
+"OPTIONS /api/auth/users/?role=lecturer HTTP/1.1" 200 0
+"OPTIONS /api/auth/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/courses/ HTTP/1.1" 200 7677
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/assignments/ HTTP/1.1" 200 12213
+"GET /api/courses/courses/ HTTP/1.1" 200 7677
+"GET /api/courses/assignments/ HTTP/1.1" 200 12213
+"POST /api/courses/assignments/ HTTP/1.1" 201 1106
+"GET /api/courses/assignments/ HTTP/1.1" 200 13320
+"OPTIONS /api/courses/assignments/1/ HTTP/1.1" 200 0
+"DELETE /api/courses/assignments/1/ HTTP/1.1" 204 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/courses/ HTTP/1.1" 200 7677
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/assignments/ HTTP/1.1" 200 12200
+"GET /api/courses/courses/ HTTP/1.1" 200 7677
+"GET /api/courses/assignments/ HTTP/1.1" 200 12200
+"POST /api/courses/assignments/ HTTP/1.1" 201 1117
+"GET /api/courses/assignments/ HTTP/1.1" 200 13318
+"GET /api/courses/departments/?college=3 HTTP/1.1" 200 1477
+"OPTIONS /api/auth/referral-codes/ HTTP/1.1" 200 0
+"OPTIONS /api/auth/users/ HTTP/1.1" 200 0
+"OPTIONS /api/auth/referral-codes/ HTTP/1.1" 200 0
+"OPTIONS /api/auth/users/ HTTP/1.1" 200 0
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/referral-codes/ HTTP/1.1" 200 52
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/ HTTP/1.1" 200 6945
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/users/users/?role=lecturer HTTP/1.1" 200 6960
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+Unauthorized: /api/courses/colleges/
+"GET /api/courses/colleges/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/departments/
+"GET /api/courses/departments/ HTTP/1.1" 401 183
+"POST /api/auth/login/ HTTP/1.1" 200 851
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"POST /api/courses/courses/ HTTP/1.1" 201 651
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/courses/ HTTP/1.1" 200 8329
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/assignments/ HTTP/1.1" 200 13318
+"GET /api/courses/courses/ HTTP/1.1" 200 8329
+"GET /api/courses/assignments/ HTTP/1.1" 200 13318
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/sessions/ HTTP/1.1" 200 0
+"GET /api/courses/sessions/ HTTP/1.1" 200 30719
+"GET /api/courses/sessions/ HTTP/1.1" 200 30719
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"GET /api/courses/colleges/ HTTP/1.1" 200 1229
+"POST /api/courses/colleges/ HTTP/1.1" 201 128
+"GET /api/courses/colleges/ HTTP/1.1" 200 1358
+"GET /api/courses/sessions/ HTTP/1.1" 200 30719
+"GET /api/courses/sessions/ HTTP/1.1" 200 30719
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3207
+"GET /api/courses/courses/ HTTP/1.1" 200 8329
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/colleges/ HTTP/1.1" 200 1358
+"GET /api/courses/assignments/ HTTP/1.1" 200 13318
+"GET /api/courses/colleges/ HTTP/1.1" 200 1358
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6959
+"GET /api/courses/courses/ HTTP/1.1" 200 8329
+"GET /api/courses/assignments/ HTTP/1.1" 200 13318
+"GET /api/courses/colleges/ HTTP/1.1" 200 1358
+"GET /api/courses/colleges/ HTTP/1.1" 200 1358
+"GET /api/courses/departments/ HTTP/1.1" 200 6811
+"GET /api/courses/departments/ HTTP/1.1" 200 6811

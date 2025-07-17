@@ -9,28 +9,77 @@ from django.db import transaction
 from datetime import datetime, timedelta
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from django.contrib.auth import get_user_model
 
 from .models import (
-    Faculty, Department, Course, CourseAssignment, 
+    College, Department, Course, CourseAssignment, 
     Enrollment, ClassSession, Notification, ClassAttendance
 )
 from .serializers import (
-    FacultySerializer, DepartmentSerializer, CourseSerializer, 
+    CollegeSerializer, DepartmentSerializer, CourseSerializer, 
     CourseAssignmentSerializer, EnrollmentSerializer, 
     ClassSessionSerializer, NotificationSerializer, ClassAttendanceSerializer
 )
 from face_recognition_app.models import FaceEncoding
 
-# Faculty and Department Views
-class FacultyListView(generics.ListAPIView):
-    queryset = Faculty.objects.filter(is_active=True)
-    serializer_class = FacultySerializer
-    permission_classes = [permissions.IsAuthenticated]
+User = get_user_model()
 
-class DepartmentListView(generics.ListAPIView):
+# College and Department Views
+class CollegeListCreateView(generics.ListCreateAPIView):
+    queryset = College.objects.filter(is_active=True)
+    serializer_class = CollegeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        # Only admins can create colleges
+        if self.request.user.role != 'admin':
+            return Response({'error': 'Only admins can create colleges'}, status=403)
+        serializer.save()
+
+class CollegeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = College.objects.all()
+    serializer_class = CollegeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_update(self, serializer):
+        if self.request.user.role != 'admin':
+            return Response({'error': 'Only admins can update colleges'}, status=403)
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            return Response({'error': 'Only admins can delete colleges'}, status=403)
+        instance.is_active = False
+        instance.save()
+
+class DepartmentListCreateView(generics.ListCreateAPIView):
     queryset = Department.objects.filter(is_active=True)
     serializer_class = DepartmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['college']
+    
+    def perform_create(self, serializer):
+        # Only admins can create departments
+        if self.request.user.role != 'admin':
+            return Response({'error': 'Only admins can create departments'}, status=403)
+        serializer.save()
+
+class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_update(self, serializer):
+        if self.request.user.role != 'admin':
+            return Response({'error': 'Only admins can update departments'}, status=403)
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            return Response({'error': 'Only admins can delete departments'}, status=403)
+        instance.is_active = False
+        instance.save()
 
 # Course Management Views
 class CourseListCreateView(generics.ListCreateAPIView):
@@ -443,32 +492,43 @@ class LecturerDashboardView(APIView):
             )
         
         # Get lecturer's course assignments
-        assignments = CourseAssignment.objects.filter(lecturer=request.user, is_active=True)
+        total_assignments = CourseAssignment.objects.filter(lecturer=request.user).count()
+        active_assignments = CourseAssignment.objects.filter(lecturer=request.user, is_active=True).count()
         
-        # Get upcoming sessions
-        upcoming_sessions = ClassSession.objects.filter(
-            course_assignment__in=assignments,
-            scheduled_date__gte=timezone.now().date(),
+        # Get total students enrolled in lecturer's courses
+        total_students = Enrollment.objects.filter(
+            course_assignment__lecturer=request.user,
+            status='approved'
+        ).values('student').distinct().count()
+        
+        # Get classes for today
+        today = timezone.now().date()
+        total_classes_today = ClassSession.objects.filter(
+            course_assignment__lecturer=request.user,
+            scheduled_date=today,
+            is_active=True
+        ).count()
+        
+        # Get upcoming classes
+        upcoming_classes = ClassSession.objects.filter(
+            course_assignment__lecturer=request.user,
+            scheduled_date__gte=today,
             is_active=True
         ).order_by('scheduled_date', 'start_time')[:5]
         
-        # Get pending enrollment requests
-        pending_enrollments = Enrollment.objects.filter(
-            course_assignment__in=assignments,
-            status='pending'
-        ).count()
-        
-        # Get unread notifications
-        unread_notifications = Notification.objects.filter(
-            recipient=request.user,
-            is_read=False
-        ).count()
+        # Get recent attendances from lecturer's classes
+        from courses.models import ClassAttendance
+        recent_attendances = ClassAttendance.objects.filter(
+            class_session__course_assignment__lecturer=request.user
+        ).order_by('-marked_at')[:10]
         
         return Response({
-            'assignments_count': assignments.count(),
-            'upcoming_sessions': ClassSessionSerializer(upcoming_sessions, many=True).data,
-            'pending_enrollments': pending_enrollments,
-            'unread_notifications': unread_notifications,
+            'total_assignments': total_assignments,
+            'active_assignments': active_assignments,
+            'total_students': total_students,
+            'total_classes_today': total_classes_today,
+            'upcoming_classes': ClassSessionSerializer(upcoming_classes, many=True).data,
+            'recent_attendances': ClassAttendanceSerializer(recent_attendances, many=True).data,
         })
 
 class StudentDashboardView(APIView):
@@ -485,27 +545,48 @@ class StudentDashboardView(APIView):
         enrollments = Enrollment.objects.filter(student=request.user)
         approved_enrollments = enrollments.filter(status='approved')
         
-        # Get upcoming sessions for enrolled courses
-        upcoming_sessions = ClassSession.objects.filter(
+        # Get upcoming classes for enrolled courses
+        upcoming_classes = ClassSession.objects.filter(
             course_assignment__in=approved_enrollments.values_list('course_assignment', flat=True),
             scheduled_date__gte=timezone.now().date(),
             is_active=True
         ).order_by('scheduled_date', 'start_time')[:5]
         
-        # Get available courses for enrollment
-        available_courses = CourseAssignment.objects.filter(
-            course__department=request.user.department,
-            course__level=request.user.level,
+        # Get classes for today
+        today = timezone.now().date()
+        classes_today = ClassSession.objects.filter(
+            course_assignment__in=approved_enrollments.values_list('course_assignment', flat=True),
+            scheduled_date=today,
             is_active=True
-        ).exclude(
-            id__in=enrollments.values_list('course_assignment', flat=True)
-        )
+        ).count()
+        
+        # Calculate attendance rate
+        from courses.models import ClassAttendance
+        total_past_sessions = ClassSession.objects.filter(
+            course_assignment__in=approved_enrollments.values_list('course_assignment', flat=True),
+            scheduled_date__lt=today,
+            is_active=True
+        ).count()
+        
+        attended_sessions = ClassAttendance.objects.filter(
+            student=request.user,
+            status='present',
+            class_session__scheduled_date__lt=today
+        ).count()
+        
+        attendance_rate = (attended_sessions / total_past_sessions * 100) if total_past_sessions > 0 else 0
+        
+        # Get recent notifications
+        recent_notifications = Notification.objects.filter(
+            recipient=request.user
+        ).order_by('-created_at')[:5]
         
         return Response({
-            'enrolled_courses': enrollments.filter(status='approved').count(),
-            'pending_requests': enrollments.filter(status='pending').count(),
-            'upcoming_sessions': ClassSessionSerializer(upcoming_sessions, many=True).data,
-            'available_courses': CourseAssignmentSerializer(available_courses, many=True).data,
+            'enrolled_courses': approved_enrollments.count(),
+            'classes_today': classes_today,
+            'attendance_rate': round(attendance_rate, 1),
+            'upcoming_classes': ClassSessionSerializer(upcoming_classes, many=True).data,
+            'recent_notifications': NotificationSerializer(recent_notifications, many=True).data,
         })
 
 class AdminDashboardView(APIView):
@@ -519,16 +600,30 @@ class AdminDashboardView(APIView):
             )
         
         # Get system-wide statistics
+        total_users = User.objects.count()
         total_courses = Course.objects.filter(is_active=True).count()
-        total_assignments = CourseAssignment.objects.filter(is_active=True).count()
+        total_departments = Department.objects.filter(is_active=True).count()
         total_enrollments = Enrollment.objects.count()
+        
+        # Get recent enrollments (last 10)
+        recent_enrollments = Enrollment.objects.select_related(
+            'student', 'course_assignment__course', 'course_assignment__lecturer'
+        ).order_by('-requested_at')[:10]
+        
+        # System stats
         pending_enrollments = Enrollment.objects.filter(status='pending').count()
         total_sessions = ClassSession.objects.filter(is_active=True).count()
+        total_assignments = CourseAssignment.objects.filter(is_active=True).count()
         
         return Response({
+            'total_users': total_users,
             'total_courses': total_courses,
-            'total_assignments': total_assignments,
+            'total_departments': total_departments,
             'total_enrollments': total_enrollments,
-            'pending_enrollments': pending_enrollments,
-            'total_sessions': total_sessions,
+            'recent_enrollments': EnrollmentSerializer(recent_enrollments, many=True).data,
+            'system_stats': {
+                'pending_enrollments': pending_enrollments,
+                'total_sessions': total_sessions,
+                'total_assignments': total_assignments,
+            }
         }) 

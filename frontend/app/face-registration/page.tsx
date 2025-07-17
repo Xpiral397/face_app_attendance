@@ -15,14 +15,16 @@ export default function FaceRegistrationPage() {
   const [qualityMetrics, setQualityMetrics] = useState<any>(null)
   
   const webcamRef = useRef<Webcam>(null)
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isStudent } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login')
+    } else if (!isStudent) {
+      router.push('/dashboard')
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, isStudent, router])
 
   const capturePhoto = useCallback(() => {
     const imageSrc = webcamRef.current?.getScreenshot()

@@ -8,6 +8,11 @@ from .views import (
     UserCreateView,
     UserDetailView,
     UserStatsView,
+    ReferralCodeListView,
+    ReferralCodeDetailView,
+    PendingUsersView,
+    UserApprovalView,
+    BulkUserApprovalView,
     logout_view,
 )
 
@@ -21,4 +26,13 @@ urlpatterns = [
     path('users/create/', UserCreateView.as_view(), name='user-create'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     path('users/stats/', UserStatsView.as_view(), name='user-stats'),
+    
+    # Referral Code URLs
+    path('referral-codes/', ReferralCodeListView.as_view(), name='referral-code-list'),
+    path('referral-codes/<int:pk>/', ReferralCodeDetailView.as_view(), name='referral-code-detail'),
+    
+    # Pending User Management URLs
+    path('pending-users/', PendingUsersView.as_view(), name='pending-users'),
+    path('user-approval/', UserApprovalView.as_view(), name='user-approval'),
+    path('bulk-user-approval/', BulkUserApprovalView.as_view(), name='bulk-user-approval'),
 ] 
