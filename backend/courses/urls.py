@@ -49,10 +49,18 @@ urlpatterns = [
     path('analytics/course-popularity/', views.course_popularity, name='course-popularity'),
     path('analytics/lecturer-workload/', views.lecturer_workload_analytics, name='lecturer-workload-analytics'),
     
+    # PDF Reports
+    path('attendance/download-report/', views.download_attendance_report, name='download-attendance-report'),
+    path('attendance/download-student-report/', views.download_student_attendance_report, name='download-student-attendance-report'),
+    path('attendance/download-comprehensive/', views.download_comprehensive_attendance_report, name='download-comprehensive-attendance-report'),
+    
     # Lecturer Attendance Analytics
     path('attendance/lecturer-history/', views.lecturer_attendance_history, name='lecturer-attendance-history'),
     path('attendance/lecturer-stats/', views.lecturer_attendance_stats, name='lecturer-attendance-stats'),
     path('attendance/course-stats/', views.course_attendance_stats, name='course-attendance-stats'),
     path('attendance/student-stats/', views.student_attendance_stats, name='student-attendance-stats'),
     path('attendance/daily-stats/', views.daily_attendance_stats, name='daily-attendance-stats'),
+    # Student Attendance
+    path('attendance/', views.StudentAttendanceCreateView.as_view(), name='student-attendance'),
+    path('attendance/history/', views.StudentAttendanceCreateView.as_view(), name='student-attendance-history'),
 ] 

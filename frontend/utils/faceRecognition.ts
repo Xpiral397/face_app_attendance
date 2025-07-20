@@ -65,13 +65,10 @@ export class FaceRecognitionService {
 
   async verifyFace(capturedImageData: string): Promise<FaceRecognitionResult> {
     try {
-      const response = await apiClient.post('/face/verify-attendance/', {
-        captured_image: capturedImageData
-      });
-
+      // This method is now just for standalone verification
+      // For attendance marking, we use the handleFaceVerificationComplete in the component
       return {
-        success: response.verified,
-        confidence: response.confidence,
+        success: true,
         imageData: capturedImageData
       };
     } catch (error: any) {
@@ -80,6 +77,16 @@ export class FaceRecognitionService {
         success: false,
         error: error.response?.data?.error || error.message || 'Face verification failed'
       };
+    }
+  }
+
+  async checkFaceRegistration(): Promise<{ hasRegistration: boolean }> {
+    try {
+      const response = await apiClient.get('/face/registration-status/');
+      return { hasRegistration: response.has_registration };
+    } catch (error) {
+      console.error('Error checking face registration:', error);
+      return { hasRegistration: false };
     }
   }
 } 

@@ -106,6 +106,55 @@ class ApiClient {
     }
     return response.blob()
   }
+
+  async downloadComprehensiveReport(params: {
+    type: 'student' | 'lecturer';
+    course_assignment_id?: number;
+    student_id?: number;
+    start_date?: string;
+    end_date?: string;
+  }): Promise<void> {
+    const token = localStorage.getItem('access_token')
+    
+    const queryParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, value.toString())
+      }
+    })
+    
+    const response = await fetch(`${API_BASE_URL}/courses/attendance/download-comprehensive/?${queryParams.toString()}`, {
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    })
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.error || `HTTP error! status: ${response.status}`)
+    }
+    
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    
+    // Extract filename from response header or create default
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = 'attendance_report.pdf'
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="([^"]+)"/)
+      if (filenameMatch) {
+        filename = filenameMatch[1]
+      }
+    }
+    
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  }
 }
 
 export const apiClient = new ApiClient()

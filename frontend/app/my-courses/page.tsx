@@ -293,11 +293,52 @@ export default function MyCoursesPage() {
                 {/* Tab Content */}
                 <div className="px-6 py-4">
                   {activeTab === 'overview' && (
-                      <div>
-                      <h3 className="text-lg font-medium text-gray-900">Course Overview</h3>
-                      <p className="text-sm text-gray-600 mt-2">
-                        This is a brief overview of the course content and objectives.
-                      </p>
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900">Course Overview</h3>
+                          <p className="text-sm text-gray-600 mt-2">
+                            This is a brief overview of the course content and objectives.
+                          </p>
+                        </div>
+                        
+                        {/* PDF Download Button - Only show if course is selected */}
+                        {selectedCourse && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await apiClient.downloadComprehensiveReport({
+                                  type: 'lecturer',
+                                  course_assignment_id: selectedCourse.assignment_id
+                                })
+                              } catch (error: any) {
+                                setError(`Failed to download report: ${error.message}`)
+                              }
+                            }}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                          >
+                            📄 Download Course Report
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* Course Statistics */}
+                      {selectedCourse && (
+                        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-blue-900">Course Code</h4>
+                            <p className="text-2xl font-bold text-blue-600">{selectedCourse.code}</p>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-green-900">Credit Units</h4>
+                            <p className="text-2xl font-bold text-green-600">{selectedCourse.credit_units}</p>
+                          </div>
+                          <div className="bg-purple-50 p-4 rounded-lg">
+                            <h4 className="text-sm font-medium text-purple-900">Level</h4>
+                            <p className="text-2xl font-bold text-purple-600">{selectedCourse.level}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

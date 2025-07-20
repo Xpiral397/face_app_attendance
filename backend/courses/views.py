@@ -11,6 +11,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus.flowables import Flowable
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from datetime import datetime
 
 from .models import (
     College, Department, Course, CourseAssignment, 
@@ -436,32 +447,54 @@ class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # Session Management Views
 class ClassSessionListCreateView(generics.ListCreateAPIView):
+    """List and create class sessions"""
     serializer_class = ClassSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['course_assignment__course', 'course_assignment__lecturer', 'class_type', 'scheduled_date', 'room']
-    search_fields = ['title', 'course_assignment__course__code', 'course_assignment__course__title']
     
     def get_queryset(self):
         queryset = ClassSession.objects.filter(is_active=True)
         
-        # Filter by lecturer for lecturers
-        if hasattr(self.request.user, 'role') and self.request.user.role == 'lecturer':
-            lecturer_param = self.request.query_params.get('lecturer')
-            if lecturer_param == 'me':
-                queryset = queryset.filter(course_assignment__lecturer=self.request.user)
-            else:
-                queryset = queryset.filter(course_assignment__lecturer=self.request.user)
+        # Filter by date if provided
+        scheduled_date = self.request.query_params.get('scheduled_date')
+        if scheduled_date:
+            queryset = queryset.filter(scheduled_date=scheduled_date)
         
-        # Filter by student's enrolled courses for students
-        elif hasattr(self.request.user, 'role') and self.request.user.role == 'student':
-            enrolled_assignments = Enrollment.objects.filter(
-                student=self.request.user,
-                status='enrolled'
-            ).values_list('course_assignment', flat=True)
-            queryset = queryset.filter(course_assignment__in=enrolled_assignments)
+        # Filter by course assignment if provided
+        course_assignment = self.request.query_params.get('course_assignment')
+        if course_assignment:
+            queryset = queryset.filter(course_assignment=course_assignment)
         
-        return queryset.select_related('course_assignment__course', 'course_assignment__lecturer', 'room', 'created_by')
+        return queryset.order_by('scheduled_date', 'start_time')
+    
+    def list(self, request, *args, **kwargs):
+        """Override list to add attendance status for students"""
+        response = super().list(request, *args, **kwargs)
+        
+        # If user is a student, add their attendance status to each session
+        if hasattr(request.user, 'role') and request.user.role == 'student':
+            sessions_data = response.data.get('results', response.data)
+            
+            for session_data in sessions_data:
+                session_id = session_data.get('id')
+                
+                # Check if student has attendance for this session
+                try:
+                    from .models import ClassAttendance
+                    attendance = ClassAttendance.objects.get(
+                        class_session_id=session_id,
+                        student=request.user
+                    )
+                    session_data['user_attendance'] = {
+                        'id': attendance.id,
+                        'status': attendance.status,
+                        'marked_at': attendance.marked_at.isoformat(),
+                        'face_verified': attendance.face_verified,
+                        'notes': attendance.notes
+                    }
+                except ClassAttendance.DoesNotExist:
+                    session_data['user_attendance'] = None
+        
+        return response
     
     def perform_create(self, serializer):
         # Only lecturers and admins can create sessions
@@ -1606,6 +1639,36 @@ class StudentAttendanceCreateView(generics.CreateAPIView):
     serializer_class = ClassAttendanceSerializer
     permission_classes = [permissions.IsAuthenticated]
     
+    def get_queryset(self):
+        """Allow students to view their own attendance history"""
+        if self.request.method == 'GET':
+            user = self.request.user
+            if hasattr(user, 'role') and user.role == 'student':
+                queryset = ClassAttendance.objects.filter(student=user)
+                
+                # Filter by course if provided
+                course_id = self.request.query_params.get('course')
+                if course_id:
+                    queryset = queryset.filter(class_session__course_assignment__course_id=course_id)
+                
+                # Filter by date range if provided
+                start_date = self.request.query_params.get('start_date')
+                end_date = self.request.query_params.get('end_date')
+                if start_date:
+                    queryset = queryset.filter(class_session__scheduled_date__gte=start_date)
+                if end_date:
+                    queryset = queryset.filter(class_session__scheduled_date__lte=end_date)
+                
+                return queryset.select_related('class_session__course_assignment__course').order_by('-marked_at')
+        
+        return ClassAttendance.objects.none()
+    
+    def get(self, request, *args, **kwargs):
+        """Get student's attendance history"""
+        queryset = self.get_queryset()
+        serializer = ClassAttendanceSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
     def perform_create(self, serializer):
         user = self.request.user
         
@@ -1677,7 +1740,7 @@ class StudentAttendanceCreateView(generics.CreateAPIView):
                     'course_code': class_session.course_assignment.course.code
                 },
                 'message': f'✅ You have already marked attendance for this session at {time_marked} on {date_marked}',
-                'icon': '✅',  # Check mark to indicate completion
+                'icon': '✅',
                 'display_status': existing_attendance.get_status_display()
             }
             
@@ -1690,32 +1753,1089 @@ class StudentAttendanceCreateView(generics.CreateAPIView):
         
         status = 'late' if now > session_start else 'present'
         
-        # Handle captured image if provided
-        captured_image_data = self.request.data.get('captured_image')
+        # Get additional data from request
+        captured_image_data = self.request.data.get('captured_image', '')
+        face_verified = self.request.data.get('face_verified', False)
+        notes = self.request.data.get('notes', '')
         
-        # Save attendance with calculated status
+        # Add course and session info to notes for better tracking
+        course_info = f"Course: {class_session.course_assignment.course.code} - {class_session.course_assignment.course.title}"
+        session_info = f"Session: {class_session.title} on {session_date}"
+        enhanced_notes = f"{notes}\n{course_info}\n{session_info}"
+        
+        # Save attendance with all information
         attendance = serializer.save(
             student=user,
             class_session=class_session,
             status=status,
-            notes=self.request.data.get('notes', ''),
-            face_verified=self.request.data.get('face_verified', False)
+            notes=enhanced_notes,
+            face_verified=face_verified
         )
+        
+        # Save captured image if provided (for audit trail)
+        if captured_image_data and face_verified:
+            try:
+                # Save image data to media folder for audit
+                import base64
+                import os
+                from django.conf import settings
+                from datetime import datetime
+                
+                # Create unique filename
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"attendance_{user.id}_{class_session.id}_{timestamp}.jpg"
+                
+                # Ensure directory exists
+                media_dir = os.path.join(settings.MEDIA_ROOT, 'attendance_photos')
+                os.makedirs(media_dir, exist_ok=True)
+                
+                # Remove data URL prefix if present
+                if captured_image_data.startswith('data:image'):
+                    captured_image_data = captured_image_data.split(',')[1]
+                
+                # Save image file
+                image_path = os.path.join(media_dir, filename)
+                with open(image_path, 'wb') as f:
+                    f.write(base64.b64decode(captured_image_data))
+                
+                # Update attendance notes with image info
+                attendance.notes += f"\nCaptured image: {filename}"
+                attendance.save()
+                
+                print(f"✅ Saved attendance image: {filename}")
+                
+            except Exception as e:
+                # Don't fail attendance saving if image saving fails
+                print(f"⚠️ Failed to save attendance image: {str(e)}")
+                attendance.notes += "\nImage save failed"
+                attendance.save()
         
         # Add success logging
         import logging
         logger = logging.getLogger(__name__)
-        logger.info(f"Attendance marked successfully: User {user.id} ({user.full_name}) - Session {class_session.id} - Status: {status}")
+        logger.info(f"Attendance saved successfully: User {user.id} ({user.full_name}) - Session {class_session.id} - Status: {status} - Face Verified: {face_verified}")
         
-        # Save captured image if provided
-        if captured_image_data and self.request.data.get('face_verified', False):
-            try:
-                # Here you could save the image to a specific location if needed
-                # For now, we'll just log that face verification was used
-                attendance.notes += ' - Face verified'
-                attendance.save()
-                logger.info(f"Face verification completed for attendance {attendance.id}")
-            except Exception as e:
-                # Don't fail attendance marking if image saving fails
-                logger.warning(f"Failed to save face verification note: {str(e)}")
-                pass 
+        print(f"✅ Attendance saved: {user.username} - {class_session.title} - {status}")
+        return attendance
+
+# Custom Canvas class for watermark
+class WatermarkCanvas(canvas.Canvas):
+    def __init__(self, filename, **kwargs):
+        canvas.Canvas.__init__(self, filename, **kwargs)
+    
+    def save(self):
+        # Add watermark on every page
+        self.drawWatermark()
+        canvas.Canvas.save(self)
+    
+    def drawWatermark(self):
+        # Add a subtle watermark
+        self.saveState()
+        self.setFont('Helvetica', 50)
+        self.setFillColor(colors.lightgrey, alpha=0.1)
+        self.translate(300, 400)
+        self.rotate(45)
+        self.drawCentredText(0, 0, "OUI UNIVERSITY")
+        self.restoreState()
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def download_attendance_report(request):
+    """Download attendance report as PDF with professional letterhead"""
+    course_assignment_id = request.query_params.get('course_assignment_id')
+    
+    if not course_assignment_id:
+        return Response({'error': 'course_assignment_id is required'}, status=400)
+    
+    try:
+        course_assignment = CourseAssignment.objects.get(id=course_assignment_id)
+        
+        # Check permissions
+        if request.user.role == 'lecturer' and course_assignment.lecturer != request.user:
+            return Response({'error': 'Permission denied'}, status=403)
+        elif request.user.role == 'student':
+            return Response({'error': 'Students cannot download course reports'}, status=403)
+        
+        # Get sessions and attendance data
+        sessions = ClassSession.objects.filter(
+            course_assignment=course_assignment,
+            is_active=True
+        ).order_by('scheduled_date', 'start_time')
+        
+        attendances = ClassAttendance.objects.filter(
+            class_session__course_assignment=course_assignment
+        ).select_related('student', 'class_session')
+        
+        # Create PDF with custom canvas
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4,
+            rightMargin=0.5*inch,
+            leftMargin=0.5*inch,
+            topMargin=1*inch,
+            bottomMargin=1*inch,
+            canvasmaker=WatermarkCanvas
+        )
+        
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        letterhead_style = ParagraphStyle(
+            'Letterhead',
+            parent=styles['Heading1'],
+            fontSize=20,
+            textColor=colors.darkblue,
+            alignment=TA_CENTER,
+            spaceAfter=10,
+            fontName='Helvetica-Bold'
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.darkblue,
+            alignment=TA_CENTER,
+            spaceAfter=20,
+            fontName='Helvetica-Bold'
+        )
+        
+        header_style = ParagraphStyle(
+            'Header',
+            parent=styles['Heading3'],
+            fontSize=12,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            spaceAfter=30,
+            fontName='Helvetica-Bold'
+        )
+        
+        # University Letterhead
+        letterhead = Paragraph("🏛️ OUI UNIVERSITY", letterhead_style)
+        elements.append(letterhead)
+        
+        subtitle = Paragraph("ATTENDANCE MANAGEMENT SYSTEM", subtitle_style)
+        elements.append(subtitle)
+        
+        # Horizontal line
+        from reportlab.platypus import HRFlowable
+        elements.append(HRFlowable(width="100%", thickness=2, color=colors.darkblue))
+        elements.append(Spacer(1, 20))
+        
+        # Report title
+        report_title = Paragraph(f"📊 ATTENDANCE REPORT", header_style)
+        elements.append(report_title)
+        
+        # Course information in a professional table
+        course_info_data = [
+            ['📚 Course Information', ''],
+            ['Course Title:', course_assignment.course.title],
+            ['Course Code:', course_assignment.course.code],
+            ['Department:', course_assignment.course.department.name],
+            ['Level:', f"{course_assignment.course.level} Level"],
+            ['Credit Units:', f"{course_assignment.course.credit_units} Units"],
+            ['', ''],
+            ['👨‍🏫 Lecturer Information', ''],
+            ['Lecturer Name:', course_assignment.lecturer.full_name],
+            ['Lecturer ID:', course_assignment.lecturer.lecturer_id or 'N/A'],
+            ['', ''],
+            ['📅 Academic Information', ''],
+            ['Academic Year:', course_assignment.academic_year],
+            ['Semester:', course_assignment.semester],
+            ['Report Generated:', datetime.now().strftime('%Y-%m-%d at %H:%M:%S')],
+            ['Generated By:', request.user.full_name]
+        ]
+        
+        course_table = Table(course_info_data, colWidths=[2.5*inch, 4*inch])
+        course_table.setStyle(TableStyle([
+            # Header rows
+            ('BACKGROUND', (0, 0), (1, 0), colors.darkblue),
+            ('BACKGROUND', (0, 7), (1, 7), colors.darkblue),
+            ('BACKGROUND', (0, 11), (1, 11), colors.darkblue),
+            ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+            ('TEXTCOLOR', (0, 7), (1, 7), colors.white),
+            ('TEXTCOLOR', (0, 11), (1, 11), colors.white),
+            ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 7), (1, 7), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 11), (1, 11), 'Helvetica-Bold'),
+            ('SPAN', (0, 0), (1, 0)),
+            ('SPAN', (0, 7), (1, 7)),
+            ('SPAN', (0, 11), (1, 11)),
+            
+            # Data rows
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            
+            # Skip empty rows
+            ('BACKGROUND', (0, 6), (1, 6), colors.white),
+            ('BACKGROUND', (0, 10), (1, 10), colors.white),
+            ('GRID', (0, 6), (1, 6), 0, colors.white),
+            ('GRID', (0, 10), (1, 10), 0, colors.white),
+        ]))
+        
+        elements.append(course_table)
+        elements.append(Spacer(1, 30))
+        
+        # Attendance summary
+        if sessions.exists():
+            # Get enrolled students
+            enrolled_students = User.objects.filter(
+                enrollments__course_assignment=course_assignment,
+                enrollments__status='enrolled'
+            ).order_by('full_name')
+            
+            if enrolled_students.exists():
+                # Attendance header
+                attendance_header = Paragraph("📋 DETAILED ATTENDANCE RECORD", header_style)
+                elements.append(attendance_header)
+                elements.append(Spacer(1, 10))
+                
+                # Create attendance matrix
+                header_row = ['👤 STUDENT NAME']
+                for session in sessions:
+                    session_header = f"{session.scheduled_date.strftime('%m/%d')}\n{session.start_time.strftime('%H:%M')}\n{session.title[:15]}..."
+                    header_row.append(session_header)
+                header_row.append('📊 SUMMARY')
+                
+                data = [header_row]
+                
+                for student in enrolled_students:
+                    row = [student.full_name]
+                    present_count = 0
+                    late_count = 0
+                    total_sessions = len(sessions)
+                    
+                    for session in sessions:
+                        attendance = attendances.filter(
+                            student=student,
+                            class_session=session
+                        ).first()
+                        
+                        if attendance:
+                            if attendance.status == 'present':
+                                status = "✅ P"
+                                if attendance.face_verified:
+                                    status += "📷"
+                                present_count += 1
+                            elif attendance.status == 'late':
+                                status = "⏰ L"
+                                if attendance.face_verified:
+                                    status += "📷"
+                                late_count += 1
+                            else:
+                                status = "❌ A"
+                            row.append(status)
+                        else:
+                            row.append('❌ A')
+                    
+                    # Summary column
+                    percentage = ((present_count + late_count) / total_sessions * 100) if total_sessions > 0 else 0
+                    summary = f"{percentage:.1f}%\n({present_count}P/{late_count}L)"
+                    row.append(summary)
+                    data.append(row)
+                
+                # Create attendance table
+                col_widths = [2.5*inch] + [0.8*inch] * len(sessions) + [1*inch]
+                attendance_table = Table(data, colWidths=col_widths)
+                attendance_table.setStyle(TableStyle([
+                    # Header styling
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 8),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    
+                    # Data styling
+                    ('FONTSIZE', (0, 1), (-1, -1), 7),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                    ('TOPPADDING', (0, 0), (-1, -1), 4),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    
+                    # Alternating row colors
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
+                    ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                ]))
+                
+                elements.append(attendance_table)
+                elements.append(Spacer(1, 20))
+                
+                # Legend
+                legend_style = ParagraphStyle(
+                    'Legend',
+                    fontSize=8,
+                    alignment=TA_LEFT,
+                    spaceAfter=5
+                )
+                
+                legend_title = Paragraph("<b>📝 LEGEND:</b>", legend_style)
+                elements.append(legend_title)
+                
+                legend_items = [
+                    "✅ P = Present",
+                    "⏰ L = Late", 
+                    "❌ A = Absent",
+                    "📷 = Face Recognition Verified",
+                    "📊 = Attendance Percentage (Present/Late counts)"
+                ]
+                
+                for item in legend_items:
+                    elements.append(Paragraph(item, legend_style))
+                
+            else:
+                elements.append(Paragraph("No enrolled students found.", styles['Normal']))
+        else:
+            elements.append(Paragraph("No sessions scheduled for this course.", styles['Normal']))
+        
+        # Footer
+        elements.append(Spacer(1, 30))
+        footer_style = ParagraphStyle(
+            'Footer',
+            fontSize=8,
+            alignment=TA_CENTER,
+            textColor=colors.grey
+        )
+        footer = Paragraph("Generated by OUI Attendance System - Confidential Document", footer_style)
+        elements.append(footer)
+        
+        # Build PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        # Return response
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        filename = f"OUI_Attendance_Report_{course_assignment.course.code}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
+    except CourseAssignment.DoesNotExist:
+        return Response({'error': 'Course assignment not found'}, status=404)
+    except Exception as e:
+        return Response({'error': f'Failed to generate report: {str(e)}'}, status=500) 
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def download_student_attendance_report(request):
+    """Download student's personal attendance report as PDF"""
+    student_id = request.query_params.get('student_id')
+    
+    # Students can only download their own report
+    if request.user.role == 'student':
+        if not student_id or int(student_id) != request.user.id:
+            student_id = request.user.id
+    elif request.user.role in ['lecturer', 'admin']:
+        if not student_id:
+            return Response({'error': 'student_id is required'}, status=400)
+    else:
+        return Response({'error': 'Permission denied'}, status=403)
+    
+    try:
+        student = User.objects.get(id=student_id)
+        
+        # Get all attendance records for this student
+        attendances = ClassAttendance.objects.filter(
+            student=student
+        ).select_related('class_session__course_assignment__course').order_by('-marked_at')
+        
+        # Create PDF
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4,
+            rightMargin=0.5*inch,
+            leftMargin=0.5*inch,
+            topMargin=1*inch,
+            bottomMargin=1*inch,
+            canvasmaker=WatermarkCanvas
+        )
+        
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Custom styles
+        letterhead_style = ParagraphStyle(
+            'Letterhead',
+            parent=styles['Heading1'],
+            fontSize=20,
+            textColor=colors.darkblue,
+            alignment=TA_CENTER,
+            spaceAfter=10,
+            fontName='Helvetica-Bold'
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Heading2'],
+            fontSize=14,
+            textColor=colors.darkblue,
+            alignment=TA_CENTER,
+            spaceAfter=20,
+            fontName='Helvetica-Bold'
+        )
+        
+        # University Letterhead
+        letterhead = Paragraph("🏛️ OUI UNIVERSITY", letterhead_style)
+        elements.append(letterhead)
+        
+        subtitle = Paragraph("STUDENT ATTENDANCE REPORT", subtitle_style)
+        elements.append(subtitle)
+        
+        # Horizontal line
+        from reportlab.platypus import HRFlowable
+        elements.append(HRFlowable(width="100%", thickness=2, color=colors.darkblue))
+        elements.append(Spacer(1, 20))
+        
+        # Student information
+        student_info_data = [
+            ['👤 Student Information', ''],
+            ['Full Name:', student.full_name],
+            ['Student ID:', student.student_id or 'N/A'],
+            ['Email:', student.email],
+            ['Department:', student.department.name if student.department else 'N/A'],
+            ['Level:', f"{student.level} Level" if student.level else 'N/A'],
+            ['', ''],
+            ['📅 Report Information', ''],
+            ['Total Sessions Attended:', str(attendances.count())],
+            ['Report Generated:', datetime.now().strftime('%Y-%m-%d at %H:%M:%S')],
+        ]
+        
+        student_table = Table(student_info_data, colWidths=[2.5*inch, 4*inch])
+        student_table.setStyle(TableStyle([
+            # Header rows
+            ('BACKGROUND', (0, 0), (1, 0), colors.darkblue),
+            ('BACKGROUND', (0, 7), (1, 7), colors.darkblue),
+            ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+            ('TEXTCOLOR', (0, 7), (1, 7), colors.white),
+            ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 7), (1, 7), 'Helvetica-Bold'),
+            ('SPAN', (0, 0), (1, 0)),
+            ('SPAN', (0, 7), (1, 7)),
+            
+            # Data rows
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            
+            # Skip empty rows
+            ('BACKGROUND', (0, 6), (1, 6), colors.white),
+            ('GRID', (0, 6), (1, 6), 0, colors.white),
+        ]))
+        
+        elements.append(student_table)
+        elements.append(Spacer(1, 30))
+        
+        # Attendance records table
+        if attendances.exists():
+            # Attendance header
+            header_style = ParagraphStyle(
+                'Header',
+                parent=styles['Heading3'],
+                fontSize=12,
+                textColor=colors.black,
+                alignment=TA_CENTER,
+                spaceAfter=20,
+                fontName='Helvetica-Bold'
+            )
+            
+            attendance_header = Paragraph("📋 DETAILED ATTENDANCE RECORDS", header_style)
+            elements.append(attendance_header)
+            
+            # Create attendance table
+            data = [['📅 Date', '🕐 Time', '📚 Course', '📖 Session', '✅ Status', '📷 Method', '📝 Notes']]
+            
+            for attendance in attendances:
+                session = attendance.class_session
+                course = session.course_assignment.course
+                
+                status_icon = '✅' if attendance.status == 'present' else '⏰' if attendance.status == 'late' else '❌'
+                method_icon = '📷' if attendance.face_verified else '📝'
+                
+                data.append([
+                    session.scheduled_date.strftime('%Y-%m-%d'),
+                    session.start_time.strftime('%H:%M'),
+                    course.code,
+                    session.title[:20] + '...' if len(session.title) > 20 else session.title,
+                    f"{status_icon} {attendance.get_status_display()}",
+                    f"{method_icon} {'Face' if attendance.face_verified else 'Manual'}",
+                    attendance.notes[:30] + '...' if len(attendance.notes) > 30 else attendance.notes
+                ])
+            
+            attendance_table = Table(data, colWidths=[1*inch, 0.8*inch, 1*inch, 1.5*inch, 1*inch, 1*inch, 1.7*inch])
+            attendance_table.setStyle(TableStyle([
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                
+                # Data styling
+                ('FONTSIZE', (0, 1), (-1, -1), 7),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                
+                # Alternating row colors
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+            ]))
+            
+            elements.append(attendance_table)
+            
+        else:
+            elements.append(Paragraph("No attendance records found.", styles['Normal']))
+        
+        # Footer
+        elements.append(Spacer(1, 30))
+        footer_style = ParagraphStyle(
+            'Footer',
+            fontSize=8,
+            alignment=TA_CENTER,
+            textColor=colors.grey
+        )
+        footer = Paragraph("Generated by OUI Attendance System - Personal Report", footer_style)
+        elements.append(footer)
+        
+        # Build PDF
+        doc.build(elements)
+        buffer.seek(0)
+        
+        # Return response
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        filename = f"OUI_Student_Attendance_{student.student_id or student.id}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
+    except User.DoesNotExist:
+        return Response({'error': 'Student not found'}, status=404)
+    except Exception as e:
+        return Response({'error': f'Failed to generate report: {str(e)}'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def download_comprehensive_attendance_report(request):
+    """Enhanced download for both lecturer and student reports with proper authentication"""
+    user = request.user
+    report_type = request.query_params.get('type', 'student')  # 'student' or 'lecturer'
+    course_assignment_id = request.query_params.get('course_assignment_id')
+    student_id = request.query_params.get('student_id')
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
+    
+    try:
+        if report_type == 'student':
+            # Student report logic
+            if user.role == 'student':
+                # Students can only download their own report
+                target_student = user
+            elif user.role in ['lecturer', 'admin']:
+                # Lecturers/admins can download any student's report
+                if not student_id:
+                    return Response({'error': 'student_id is required for lecturer/admin access'}, status=400)
+                target_student = User.objects.get(id=student_id)
+            else:
+                return Response({'error': 'Permission denied'}, status=403)
+            
+            # Get student's attendance records
+            attendances_query = ClassAttendance.objects.filter(
+                student=target_student
+            ).select_related('class_session__course_assignment__course', 'class_session__course_assignment__lecturer')
+            
+            # Apply date filters if provided
+            if start_date:
+                attendances_query = attendances_query.filter(class_session__scheduled_date__gte=start_date)
+            if end_date:
+                attendances_query = attendances_query.filter(class_session__scheduled_date__lte=end_date)
+            
+            attendances = attendances_query.order_by('-class_session__scheduled_date', '-marked_at')
+            
+            # Generate student PDF report
+            return generate_student_pdf_report(target_student, attendances, request.user)
+            
+        elif report_type == 'lecturer':
+            # Lecturer report logic
+            if user.role == 'lecturer':
+                # Lecturers can download reports for their own courses
+                if not course_assignment_id:
+                    return Response({'error': 'course_assignment_id is required'}, status=400)
+                
+                course_assignment = CourseAssignment.objects.get(
+                    id=course_assignment_id,
+                    lecturer=user
+                )
+            elif user.role == 'admin':
+                # Admins can download any course report
+                if not course_assignment_id:
+                    return Response({'error': 'course_assignment_id is required'}, status=400)
+                
+                course_assignment = CourseAssignment.objects.get(id=course_assignment_id)
+            else:
+                return Response({'error': 'Permission denied'}, status=403)
+            
+            # Get course sessions and attendance data
+            sessions_query = ClassSession.objects.filter(
+                course_assignment=course_assignment,
+                is_active=True
+            )
+            
+            # Apply date filters if provided
+            if start_date:
+                sessions_query = sessions_query.filter(scheduled_date__gte=start_date)
+            if end_date:
+                sessions_query = sessions_query.filter(scheduled_date__lte=end_date)
+            
+            sessions = sessions_query.order_by('scheduled_date', 'start_time')
+            
+            attendances = ClassAttendance.objects.filter(
+                class_session__in=sessions
+            ).select_related('student', 'class_session')
+            
+            # Generate course PDF report
+            return generate_course_pdf_report(course_assignment, sessions, attendances, request.user, start_date, end_date)
+            
+        else:
+            return Response({'error': 'Invalid report type. Use "student" or "lecturer"'}, status=400)
+            
+    except CourseAssignment.DoesNotExist:
+        return Response({'error': 'Course assignment not found'}, status=404)
+    except User.DoesNotExist:
+        return Response({'error': 'Student not found'}, status=404)
+    except Exception as e:
+        return Response({'error': f'Failed to generate report: {str(e)}'}, status=500)
+
+def generate_student_pdf_report(student, attendances, generated_by):
+    """Generate comprehensive student attendance PDF report"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=A4,
+        rightMargin=0.5*inch,
+        leftMargin=0.5*inch,
+        topMargin=1*inch,
+        bottomMargin=1*inch,
+        canvasmaker=WatermarkCanvas
+    )
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    letterhead_style = ParagraphStyle(
+        'Letterhead',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.darkblue,
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        fontName='Helvetica-Bold'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.darkblue,
+        alignment=TA_CENTER,
+        spaceAfter=20,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Header
+    letterhead = Paragraph("🏛️ OUI UNIVERSITY", letterhead_style)
+    elements.append(letterhead)
+    
+    subtitle = Paragraph("STUDENT ATTENDANCE REPORT", subtitle_style)
+    elements.append(subtitle)
+    
+    # Horizontal line
+    from reportlab.platypus import HRFlowable
+    elements.append(HRFlowable(width="100%", thickness=2, color=colors.darkblue))
+    elements.append(Spacer(1, 20))
+    
+    # Student information
+    student_info_data = [
+        ['👤 Student Information', ''],
+        ['Full Name:', student.full_name],
+        ['Student ID:', student.student_id or 'N/A'],
+        ['Email:', student.email],
+        ['Department:', student.department.name if student.department else 'N/A'],
+        ['Level:', f"{student.level} Level" if student.level else 'N/A'],
+        ['', ''],
+        ['📊 Attendance Summary', ''],
+        ['Total Sessions:', str(attendances.count())],
+        ['Present:', str(attendances.filter(status='present').count())],
+        ['Late:', str(attendances.filter(status='late').count())],
+        ['Face Verified:', str(attendances.filter(face_verified=True).count())],
+        ['', ''],
+        ['📅 Report Information', ''],
+        ['Generated By:', generated_by.full_name],
+        ['Generated On:', datetime.now().strftime('%Y-%m-%d at %H:%M:%S')],
+    ]
+    
+    student_table = Table(student_info_data, colWidths=[2.5*inch, 4*inch])
+    student_table.setStyle(TableStyle([
+        # Header rows styling
+        ('BACKGROUND', (0, 0), (1, 0), colors.darkblue),
+        ('BACKGROUND', (0, 7), (1, 7), colors.darkblue),
+        ('BACKGROUND', (0, 13), (1, 13), colors.darkblue),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+        ('TEXTCOLOR', (0, 7), (1, 7), colors.white),
+        ('TEXTCOLOR', (0, 13), (1, 13), colors.white),
+        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 7), (1, 7), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 13), (1, 13), 'Helvetica-Bold'),
+        ('SPAN', (0, 0), (1, 0)),
+        ('SPAN', (0, 7), (1, 7)),
+        ('SPAN', (0, 13), (1, 13)),
+        
+        # General styling
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        
+        # Hide empty rows
+        ('BACKGROUND', (0, 6), (1, 6), colors.white),
+        ('BACKGROUND', (0, 12), (1, 12), colors.white),
+        ('GRID', (0, 6), (1, 6), 0, colors.white),
+        ('GRID', (0, 12), (1, 12), 0, colors.white),
+    ]))
+    
+    elements.append(student_table)
+    elements.append(Spacer(1, 30))
+    
+    # Detailed attendance records
+    if attendances.exists():
+        header_style = ParagraphStyle(
+            'Header',
+            parent=styles['Heading3'],
+            fontSize=12,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            spaceAfter=20,
+            fontName='Helvetica-Bold'
+        )
+        
+        attendance_header = Paragraph("📋 DETAILED ATTENDANCE RECORDS", header_style)
+        elements.append(attendance_header)
+        
+        # Group by course for better organization
+        from collections import defaultdict
+        courses_attendance = defaultdict(list)
+        
+        for attendance in attendances:
+            course_code = attendance.class_session.course_assignment.course.code
+            courses_attendance[course_code].append(attendance)
+        
+        for course_code, course_attendances in courses_attendance.items():
+            # Course header
+            course_header = Paragraph(f"📚 {course_code}", styles['Heading4'])
+            elements.append(course_header)
+            elements.append(Spacer(1, 10))
+            
+            # Attendance table for this course
+            data = [['📅 Date', '🕐 Time', '📖 Session', '✅ Status', '📷 Method', '⏰ Marked At']]
+            
+            for attendance in course_attendances:
+                session = attendance.class_session
+                
+                status_icon = '✅' if attendance.status == 'present' else '⏰' if attendance.status == 'late' else '❌'
+                method_icon = '📷' if attendance.face_verified else '📝'
+                
+                data.append([
+                    session.scheduled_date.strftime('%Y-%m-%d'),
+                    session.start_time.strftime('%H:%M'),
+                    session.title[:25] + '...' if len(session.title) > 25 else session.title,
+                    f"{status_icon} {attendance.get_status_display()}",
+                    f"{method_icon} {'Face' if attendance.face_verified else 'Manual'}",
+                    attendance.marked_at.strftime('%H:%M:%S')
+                ])
+            
+            course_table = Table(data, colWidths=[1.2*inch, 0.8*inch, 2*inch, 1.2*inch, 1.2*inch, 1.1*inch])
+            course_table.setStyle(TableStyle([
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 8),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                
+                # Data styling
+                ('FONTSIZE', (0, 1), (-1, -1), 7),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+            ]))
+            
+            elements.append(course_table)
+            elements.append(Spacer(1, 20))
+    
+    else:
+        elements.append(Paragraph("No attendance records found.", styles['Normal']))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    # Return response
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    filename = f"Student_Attendance_{student.student_id or student.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+def generate_course_pdf_report(course_assignment, sessions, attendances, generated_by, start_date=None, end_date=None):
+    """Generate comprehensive course attendance PDF report"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=A4,
+        rightMargin=0.5*inch,
+        leftMargin=0.5*inch,
+        topMargin=1*inch,
+        bottomMargin=1*inch,
+        canvasmaker=WatermarkCanvas
+    )
+    
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    letterhead_style = ParagraphStyle(
+        'Letterhead',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.darkblue,
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        fontName='Helvetica-Bold'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.darkblue,
+        alignment=TA_CENTER,
+        spaceAfter=20,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Header
+    letterhead = Paragraph("🏛️ OUI UNIVERSITY", letterhead_style)
+    elements.append(letterhead)
+    
+    subtitle = Paragraph("COURSE ATTENDANCE REPORT", subtitle_style)
+    elements.append(subtitle)
+    
+    # Horizontal line
+    from reportlab.platypus import HRFlowable
+    elements.append(HRFlowable(width="100%", thickness=2, color=colors.darkblue))
+    elements.append(Spacer(1, 20))
+    
+    # Course information
+    date_range = ""
+    if start_date and end_date:
+        date_range = f"From {start_date} to {end_date}"
+    elif start_date:
+        date_range = f"From {start_date} onwards"
+    elif end_date:
+        date_range = f"Up to {end_date}"
+    else:
+        date_range = "All available data"
+    
+    course_info_data = [
+        ['📚 Course Information', ''],
+        ['Course Title:', course_assignment.course.title],
+        ['Course Code:', course_assignment.course.code],
+        ['Department:', course_assignment.course.department.name],
+        ['Level:', f"{course_assignment.course.level} Level"],
+        ['Credit Units:', f"{course_assignment.course.credit_units} Units"],
+        ['', ''],
+        ['👨‍🏫 Lecturer Information', ''],
+        ['Lecturer Name:', course_assignment.lecturer.full_name],
+        ['Lecturer ID:', course_assignment.lecturer.lecturer_id or 'N/A'],
+        ['', ''],
+        ['📅 Report Information', ''],
+        ['Academic Year:', course_assignment.academic_year],
+        ['Semester:', course_assignment.semester],
+        ['Date Range:', date_range],
+        ['Total Sessions:', str(sessions.count())],
+        ['Total Attendance Records:', str(attendances.count())],
+        ['Generated By:', generated_by.full_name],
+        ['Generated On:', datetime.now().strftime('%Y-%m-%d at %H:%M:%S')]
+    ]
+    
+    course_table = Table(course_info_data, colWidths=[2.5*inch, 4*inch])
+    course_table.setStyle(TableStyle([
+        # Header rows
+        ('BACKGROUND', (0, 0), (1, 0), colors.darkblue),
+        ('BACKGROUND', (0, 7), (1, 7), colors.darkblue),
+        ('BACKGROUND', (0, 11), (1, 11), colors.darkblue),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+        ('TEXTCOLOR', (0, 7), (1, 7), colors.white),
+        ('TEXTCOLOR', (0, 11), (1, 11), colors.white),
+        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 7), (1, 7), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 11), (1, 11), 'Helvetica-Bold'),
+        ('SPAN', (0, 0), (1, 0)),
+        ('SPAN', (0, 7), (1, 7)),
+        ('SPAN', (0, 11), (1, 11)),
+        
+        # General styling
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 1), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        
+        # Hide empty rows
+        ('BACKGROUND', (0, 6), (1, 6), colors.white),
+        ('BACKGROUND', (0, 10), (1, 10), colors.white),
+        ('GRID', (0, 6), (1, 6), 0, colors.white),
+        ('GRID', (0, 10), (1, 10), 0, colors.white),
+    ]))
+    
+    elements.append(course_table)
+    elements.append(Spacer(1, 30))
+    
+    # Attendance matrix
+    if sessions.exists():
+        # Get enrolled students
+        enrolled_students = User.objects.filter(
+            enrollments__course_assignment=course_assignment,
+            enrollments__status='enrolled'
+        ).order_by('full_name')
+        
+        if enrolled_students.exists():
+            header_style = ParagraphStyle(
+                'Header',
+                parent=styles['Heading3'],
+                fontSize=12,
+                textColor=colors.black,
+                alignment=TA_CENTER,
+                spaceAfter=20,
+                fontName='Helvetica-Bold'
+            )
+            
+            attendance_header = Paragraph("📋 ATTENDANCE MATRIX", header_style)
+            elements.append(attendance_header)
+            
+            # Create attendance matrix
+            header_row = ['👤 STUDENT NAME']
+            for session in sessions:
+                session_header = f"{session.scheduled_date.strftime('%m/%d')}\n{session.start_time.strftime('%H:%M')}"
+                header_row.append(session_header)
+            header_row.append('📊 SUMMARY')
+            
+            data = [header_row]
+            
+            for student in enrolled_students:
+                row = [student.full_name]
+                present_count = 0
+                late_count = 0
+                face_verified_count = 0
+                total_sessions = len(sessions)
+                
+                for session in sessions:
+                    attendance = attendances.filter(
+                        student=student,
+                        class_session=session
+                    ).first()
+                    
+                    if attendance:
+                        if attendance.status == 'present':
+                            status = "✅"
+                            present_count += 1
+                        elif attendance.status == 'late':
+                            status = "⏰"
+                            late_count += 1
+                        else:
+                            status = "❌"
+                        
+                        if attendance.face_verified:
+                            status += "📷"
+                            face_verified_count += 1
+                        
+                        row.append(status)
+                    else:
+                        row.append('❌')
+                
+                # Summary column
+                attendance_rate = ((present_count + late_count) / total_sessions * 100) if total_sessions > 0 else 0
+                summary = f"{attendance_rate:.1f}%\n({present_count}P/{late_count}L)\n({face_verified_count}📷)"
+                row.append(summary)
+                data.append(row)
+            
+            # Create attendance table
+            col_widths = [2.2*inch] + [0.6*inch] * len(sessions) + [1.2*inch]
+            attendance_table = Table(data, colWidths=col_widths)
+            attendance_table.setStyle(TableStyle([
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 7),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                
+                # Data styling
+                ('FONTSIZE', (0, 1), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+            ]))
+            
+            elements.append(attendance_table)
+            elements.append(Spacer(1, 20))
+            
+            # Legend
+            legend_style = ParagraphStyle(
+                'Legend',
+                fontSize=8,
+                alignment=TA_LEFT,
+                spaceAfter=5
+            )
+            
+            legend_title = Paragraph("<b>📝 LEGEND:</b>", legend_style)
+            elements.append(legend_title)
+            
+            legend_items = [
+                "✅ = Present",
+                "⏰ = Late", 
+                "❌ = Absent",
+                "📷 = Face Recognition Verified",
+                "📊 = (Attendance%) (Present/Late) (Face Verified)"
+            ]
+            
+            for item in legend_items:
+                elements.append(Paragraph(item, legend_style))
+        
+        else:
+            elements.append(Paragraph("No enrolled students found.", styles['Normal']))
+    else:
+        elements.append(Paragraph("No sessions found for the specified criteria.", styles['Normal']))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    # Return response
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    filename = f"Course_Attendance_{course_assignment.course.code}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

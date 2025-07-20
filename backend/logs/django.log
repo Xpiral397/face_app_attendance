@@ -5855,3 +5855,672 @@ Not Found: /api/dashboard/student/
 "GET /api/attendance/stats/ HTTP/1.1" 200 52
 "GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
 "GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"OPTIONS /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 0
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"OPTIONS /api/attendance/stats/ HTTP/1.1" 200 0
+"OPTIONS /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 0
+"OPTIONS /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 0
+"OPTIONS /api/attendance/stats/ HTTP/1.1" 200 0
+"GET /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 52
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 52
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+Unauthorized: /api/courses/sessions/
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 401 183
+Unauthorized: /api/courses/sessions/
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 810
+"OPTIONS /api/dashboard/student/ HTTP/1.1" 200 0
+Not Found: /api/dashboard/student/
+"GET /api/dashboard/student/ HTTP/1.1" 404 3103
+Not Found: /api/dashboard/student/
+"GET /api/dashboard/student/ HTTP/1.1" 404 3103
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+Not Found: /api/dashboard/student/
+"GET /api/dashboard/student/ HTTP/1.1" 404 3103
+Not Found: /api/dashboard/student/
+"GET /api/dashboard/student/ HTTP/1.1" 404 3103
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"OPTIONS /api/face/verify-attendance/ HTTP/1.1" 200 0
+Internal Server Error: /api/face/verify-attendance/
+Internal Server Error: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 500 79
+"POST /api/face/verify-attendance/ HTTP/1.1" 500 79
+C:\Users\USER\AIFaceRecognized\backend\face_recognition_app\views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 810
+"OPTIONS /api/courses/course-assignments/ HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"OPTIONS /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 0
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2470
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 125
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 125
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\urls.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\venv\Lib\site-packages\reportlab\rl_config.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 52
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 52
+"GET /api/attendance/stats/ HTTP/1.1" 200 52
+"GET /api/attendance/history/?start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 52
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"OPTIONS /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 0
+Unauthorized: /api/courses/attendance/
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 401 183
+Unauthorized: /api/courses/attendance/
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 401 183
+"POST /api/auth/login/ HTTP/1.1" 200 810
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+C:\Users\USER\AIFaceRecognized\backend\face_recognition_app\views.py changed, reloading.
+Watching for file changes with StatReloader
+Unauthorized: /api/face/verify-attendance/
+Unauthorized: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 401 183
+"POST /api/face/verify-attendance/ HTTP/1.1" 401 183
+"POST /api/auth/login/ HTTP/1.1" 200 810
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"POST /api/face/verify-attendance/ HTTP/1.1" 200 126
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+Bad Request: /api/face/verify-attendance/
+"POST /api/face/verify-attendance/ HTTP/1.1" 400 112
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"OPTIONS /api/face-recognition/verify-and-mark-attendance/ HTTP/1.1" 200 0
+Not Found: /api/face-recognition/verify-and-mark-attendance/
+Not Found: /api/face-recognition/verify-and-mark-attendance/
+"POST /api/face-recognition/verify-and-mark-attendance/ HTTP/1.1" 404 3182
+"POST /api/face-recognition/verify-and-mark-attendance/ HTTP/1.1" 404 3182
+"OPTIONS /api/api/face/verify-and-mark-attendance/ HTTP/1.1" 200 0
+Not Found: /api/api/face/verify-and-mark-attendance/
+"POST /api/api/face/verify-and-mark-attendance/ HTTP/1.1" 404 3158
+Not Found: /api/api/face/verify-and-mark-attendance/
+"POST /api/api/face/verify-and-mark-attendance/ HTTP/1.1" 404 3158
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+Not Found: /api/api/face/verify-and-mark-attendance/
+"POST /api/api/face/verify-and-mark-attendance/ HTTP/1.1" 404 3158
+Not Found: /api/api/face/verify-and-mark-attendance/
+"POST /api/api/face/verify-and-mark-attendance/ HTTP/1.1" 404 3158
+"OPTIONS /api/face/verify-and-mark-attendance/ HTTP/1.1" 200 0
+Unsupported Media Type: /api/face/verify-and-mark-attendance/
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 415 68
+Unsupported Media Type: /api/face/verify-and-mark-attendance/
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 415 68
+Unsupported Media Type: /api/face/verify-and-mark-attendance/
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 415 68
+Unsupported Media Type: /api/face/verify-and-mark-attendance/
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 415 68
+C:\Users\USER\AIFaceRecognized\backend\face_recognition_app\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+C:\Users\USER\AIFaceRecognized\backend\face_recognition_app\services.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 801
+"OPTIONS /api/courses/course-assignments/?lecturer=me HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/departments/ HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?lecturer=me HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/course-assignments/?lecturer=me HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"OPTIONS /api/courses/enrollments/?course_assignment=280&status=enrolled HTTP/1.1" 200 0
+"GET /api/courses/enrollments/?course_assignment=280&status=enrolled HTTP/1.1" 200 5529
+"OPTIONS /api/courses/sessions/?course_assignment=280 HTTP/1.1" 200 0
+"GET /api/courses/sessions/?course_assignment=280 HTTP/1.1" 200 2470
+"OPTIONS /api/courses/rooms/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/rooms/ HTTP/1.1" 200 0
+"GET /api/courses/rooms/ HTTP/1.1" 200 4061
+"GET /api/courses/rooms/ HTTP/1.1" 200 4061
+"OPTIONS /api/courses/sessions/check-conflicts/ HTTP/1.1" 200 0
+Bad Request: /api/courses/sessions/check-conflicts/
+"POST /api/courses/sessions/check-conflicts/ HTTP/1.1" 400 76
+Bad Request: /api/courses/sessions/check-conflicts/
+"POST /api/courses/sessions/check-conflicts/ HTTP/1.1" 400 76
+"OPTIONS /api/courses/sessions/46/ HTTP/1.1" 200 0
+"PUT /api/courses/sessions/46/ HTTP/1.1" 200 2418
+"GET /api/courses/sessions/?course_assignment=280 HTTP/1.1" 200 2470
+"POST /api/auth/login/ HTTP/1.1" 200 801
+"GET /api/courses/course-assignments/?lecturer=me HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/course-assignments/?lecturer=me HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"POST /api/auth/login/ HTTP/1.1" 200 810
+Not Found: /api/dashboard/student/
+"GET /api/dashboard/student/ HTTP/1.1" 404 3103
+Not Found: /api/dashboard/student/
+"GET /api/dashboard/student/ HTTP/1.1" 404 3103
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2493
+Unsupported Media Type: /api/face/verify-and-mark-attendance/
+Unsupported Media Type: /api/face/verify-and-mark-attendance/
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 415 68
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 415 68
+Bad Request: /api/face/verify-and-mark-attendance/
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 400 53
+Watching for file changes with StatReloader
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 200 372
+Internal Server Error: /api/face/verify-and-mark-attendance/
+"OPTIONS /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 0
+"POST /api/face/verify-and-mark-attendance/ HTTP/1.1" 500 145
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2693
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2775
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2775
+Unauthorized: /api/courses/attendance/download-student-report/
+"GET /api/courses/attendance/download-student-report/?student_id=24 HTTP/1.1" 401 58
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3070
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\views.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/courses/attendance/download-comprehensive/?type=student&student_id=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 0
+"GET /api/courses/attendance/download-comprehensive/?type=student&student_id=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 3543
+C:\Users\USER\AIFaceRecognized\backend\attendance_system\settings.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/courses/course-assignments/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/ HTTP/1.1" 200 0
+Unauthorized: /api/courses/course-assignments/
+"GET /api/courses/course-assignments/ HTTP/1.1" 401 183
+Unauthorized: /api/courses/course-assignments/
+"GET /api/courses/course-assignments/ HTTP/1.1" 401 183
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 810
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"OPTIONS /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"OPTIONS /api/courses/sessions/? HTTP/1.1" 200 0
+"GET /api/courses/sessions/? HTTP/1.1" 200 2693
+"GET /api/courses/sessions/? HTTP/1.1" 200 2693
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/enrollments/my-enrollments/ HTTP/1.1" 200 4079
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2693
+"GET /api/courses/sessions/?scheduled_date=2025-07-20 HTTP/1.1" 200 2693
+"OPTIONS /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 0
+"OPTIONS /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 0
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2775
+"GET /api/courses/attendance/?student=24&start_date=2025-06-20&end_date=2025-07-20 HTTP/1.1" 200 2775
+"POST /api/auth/login/ HTTP/1.1" 200 851
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+"OPTIONS /api/dashboard/admin/ HTTP/1.1" 200 0
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3244
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3244
+"OPTIONS /api/courses/courses/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/lecturers/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/courses/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/lecturers/ HTTP/1.1" 200 0
+"OPTIONS /api/courses/colleges/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"OPTIONS /api/courses/course-assignments/?course=14 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=15 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=18 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=16 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=17 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=19 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=20 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=22 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=21 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=23 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=24 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=25 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=26 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=27 HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?course=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=17 HTTP/1.1" 200 52
+"OPTIONS /api/courses/course-assignments/?course=28 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=29 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=30 HTTP/1.1" 200 0
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/course-assignments/?course=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=19 HTTP/1.1" 200 52
+"OPTIONS /api/courses/course-assignments/?course=31 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=33 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?course=32 HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?course=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=14 HTTP/1.1" 200 1072
+"GET /api/courses/course-assignments/?course=21 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=23 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=25 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=22 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=24 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=26 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=28 HTTP/1.1" 200 52
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/course-assignments/?course=27 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=33 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=32 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=30 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=31 HTTP/1.1" 200 1050
+"GET /api/courses/course-assignments/?course=29 HTTP/1.1" 200 1062
+"GET /api/courses/course-assignments/?course=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=14 HTTP/1.1" 200 1072
+"GET /api/courses/course-assignments/?course=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=21 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=22 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=25 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=23 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=33 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=27 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=28 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=26 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=30 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=24 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=31 HTTP/1.1" 200 1050
+"GET /api/courses/course-assignments/?course=29 HTTP/1.1" 200 1062
+"GET /api/courses/course-assignments/?course=32 HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"OPTIONS /api/auth/users/?role=lecturer HTTP/1.1" 200 0
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6415
+"OPTIONS /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 52
+"OPTIONS /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 0
+"OPTIONS /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 52
+"OPTIONS /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 52
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6415
+"GET /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 52
+"OPTIONS /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 0
+"GET /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 3082
+"OPTIONS /api/courses/enrollments/ HTTP/1.1" 200 0
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/course-assignments/?course=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=21 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=23 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=14 HTTP/1.1" 200 1072
+"GET /api/courses/course-assignments/?course=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=24 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=22 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=25 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=28 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=30 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=27 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=26 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=31 HTTP/1.1" 200 1050
+"GET /api/courses/course-assignments/?course=33 HTTP/1.1" 200 52
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/course-assignments/?course=32 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=29 HTTP/1.1" 200 1062
+"GET /api/courses/course-assignments/?course=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=21 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=14 HTTP/1.1" 200 1072
+"GET /api/courses/course-assignments/?course=23 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=22 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=26 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=27 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=25 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=28 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=24 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=30 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=31 HTTP/1.1" 200 1050
+"GET /api/courses/course-assignments/?course=32 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=33 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=29 HTTP/1.1" 200 1062
+"GET /api/courses/rooms/ HTTP/1.1" 200 4061
+"GET /api/courses/rooms/ HTTP/1.1" 200 4061
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6415
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6415
+"GET /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 3082
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/course-assignments/?course=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=14 HTTP/1.1" 200 1072
+"GET /api/courses/course-assignments/?course=21 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=23 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=25 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=24 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=26 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=27 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=28 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=30 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=22 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=29 HTTP/1.1" 200 1062
+"GET /api/courses/course-assignments/?course=31 HTTP/1.1" 200 1050
+"GET /api/courses/course-assignments/?course=32 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=33 HTTP/1.1" 200 52
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/course-assignments/?course=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=22 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=21 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=24 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=14 HTTP/1.1" 200 1072
+"GET /api/courses/course-assignments/?course=26 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=27 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=25 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=23 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=30 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=28 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=32 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=33 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?course=31 HTTP/1.1" 200 1050
+"GET /api/courses/course-assignments/?course=29 HTTP/1.1" 200 1062
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3244
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3244
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/rooms/ HTTP/1.1" 200 4061
+"GET /api/courses/rooms/ HTTP/1.1" 200 4061
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6415
+"GET /api/auth/users/?role=lecturer HTTP/1.1" 200 6415
+"GET /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=1 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=2 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=5 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=4 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=7 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=6 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=8 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=10 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=12 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=9 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=13 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=11 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=3 HTTP/1.1" 200 3082
+"GET /api/courses/course-assignments/?lecturer=16 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=15 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=14 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=17 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=18 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=19 HTTP/1.1" 200 52
+"GET /api/courses/course-assignments/?lecturer=20 HTTP/1.1" 200 52
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3244
+Not Found: /api/dashboard/admin/
+"GET /api/dashboard/admin/ HTTP/1.1" 404 3244
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/lecturers/ HTTP/1.1" 200 672
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/course-assignments/ HTTP/1.1" 200 3082
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/colleges/ HTTP/1.1" 200 698
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/departments/ HTTP/1.1" 200 5059
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929
+"GET /api/courses/enrollments/ HTTP/1.1" 200 8237
+"GET /api/courses/courses/ HTTP/1.1" 200 12929

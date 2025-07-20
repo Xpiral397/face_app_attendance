@@ -61,13 +61,63 @@ export default function AttendanceHistoryPage() {
       if (dateRange.start_date) params.append('start_date', dateRange.start_date)
       if (dateRange.end_date) params.append('end_date', dateRange.end_date)
       
-      const [recordsResponse, statsResponse] = await Promise.all([
-        apiClient.get(`/attendance/history/?${params.toString()}`),
-        apiClient.get('/attendance/stats/')
+      // Use the correct endpoints for class attendance
+      const [recordsResponse] = await Promise.all([
+        apiClient.get(`/courses/attendance/?student=${user?.id}&${params.toString()}`)
       ])
       
-      setAttendanceRecords(recordsResponse.data || [])
-      setCourseStats(statsResponse.data || [])
+      console.log('Attendance records response:', recordsResponse)
+      
+      // Transform the data to match expected format
+      const transformedRecords = (recordsResponse.results || recordsResponse || []).map((record: any) => ({
+        id: record.id,
+        session: {
+          id: record.class_session.id,
+          title: record.class_session.title,
+          course: {
+            code: record.class_session.course_assignment.course.code,
+            title: record.class_session.course_assignment.course.title
+          },
+          scheduled_date: record.class_session.scheduled_date,
+          start_time: record.class_session.start_time,
+          end_time: record.class_session.end_time,
+          location: record.class_session.effective_location,
+          class_type: record.class_session.class_type
+        },
+        status: record.status,
+        marked_at: record.marked_at,
+        verification_method: record.face_verified ? 'Face Recognition' : 'Manual',
+        face_verified: record.face_verified
+      }))
+      
+      setAttendanceRecords(transformedRecords)
+      
+      // Calculate course stats from records
+      const courseStatsMap = new Map()
+      transformedRecords.forEach((record: any) => {
+        const courseCode = record.session.course.code
+        if (!courseStatsMap.has(courseCode)) {
+          courseStatsMap.set(courseCode, {
+            course_code: courseCode,
+            course_title: record.session.course.title,
+            total_sessions: 0,
+            attended_sessions: 0
+          })
+        }
+        
+        const stats = courseStatsMap.get(courseCode)
+        stats.total_sessions += 1
+        if (record.status === 'present' || record.status === 'late') {
+          stats.attended_sessions += 1
+        }
+      })
+      
+      const calculatedStats = Array.from(courseStatsMap.values()).map((stat: any) => ({
+        ...stat,
+        attendance_percentage: stat.total_sessions > 0 ? Math.round((stat.attended_sessions / stat.total_sessions) * 100) : 0
+      }))
+      
+      setCourseStats(calculatedStats)
       setError('')
     } catch (error) {
       console.error('Error fetching attendance history:', error)
@@ -113,9 +163,33 @@ export default function AttendanceHistoryPage() {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Attendance History</h1>
-          <p className="text-gray-600 mt-2">View your attendance records and statistics</p>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Attendance History</h1>
+              <p className="text-gray-600 mt-2">View your attendance records and statistics</p>
+            </div>
+            
+            {/* Download Button */}
+            <button
+              onClick={async () => {
+                try {
+                  await apiClient.downloadComprehensiveReport({
+                    type: 'student',
+                    student_id: user?.id,
+                    start_date: dateRange.start_date,
+                    end_date: dateRange.end_date
+                  })
+                } catch (error: any) {
+                  setError(`Failed to download report: ${error.message}`)
+                }
+              }}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              📄 Download My Attendance Report
+            </button>
+          </div>
         </div>
 
         {error && (

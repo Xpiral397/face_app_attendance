@@ -29,6 +29,7 @@ const navigationItems: NavigationItem[] = [
   { name: 'College Management', href: '/colleges', icon: null, roles: ['admin'] },
   { name: 'Room Management', href: '/rooms', icon: null, roles: ['admin'] },
   { name: 'User Management', href: '/users', icon: null, roles: ['admin'] },
+  { name: 'Lecturer Assignment', href: '/lecturer-assignment', icon: null, roles: ['admin'] },
   { name: 'Notifications', href: '/notifications', icon: null, roles: ['admin', 'lecturer', 'student'] }
 ]
 

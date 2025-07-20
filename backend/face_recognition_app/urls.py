@@ -12,4 +12,5 @@ urlpatterns = [
     path('logs/', views.face_recognition_logs, name='face_logs'),
     path('validate-quality/', views.validate_image_quality, name='validate_image_quality'),
     path('departments-with-faces/', views.departments_with_faces, name='departments_with_faces'),
+    path('verify-and-mark-attendance/', views.FaceVerifyAndMarkAttendanceView.as_view(), name='verify_and_mark_attendance'),
 ] 

@@ -5,7 +5,6 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { apiClient } from '../../../utils/api'
 import AppLayout from '../../../components/AppLayout'
 import FaceScanner from '../../../components/FaceScanner'
-import { FaceRecognitionResult } from '../../../utils/faceRecognition'
 
 interface Session {
   id: number
@@ -33,6 +32,7 @@ interface Session {
     face_verified: boolean;
     status: 'present' | 'late' | string;
     marked_at: string;
+    notes?: string;
   };
   description?: string;
 }
@@ -45,8 +45,6 @@ export default function MarkAttendancePage() {
   const [markingAttendance, setMarkingAttendance] = useState<number | null>(null)
   const [showFaceScanner, setShowFaceScanner] = useState(false)
   const [selectedSessionForScanning, setSelectedSessionForScanning] = useState<Session | null>(null)
-  const [isFaceScanning, setIsFaceScanning] = useState(false)
-  const [faceScannerCallback, setFaceScannerCallback] = useState<((result: FaceRecognitionResult) => void) | null>(null)
 
   const { user, isStudent } = useAuth()
 
@@ -56,210 +54,209 @@ export default function MarkAttendancePage() {
     }
   }, [isStudent])
 
+  const isAttendanceOpen = (session: Session) => {
+    const now = new Date()
+    const currentTime = now.toTimeString().substring(0, 5) // HH:MM format
+    
+    const attendanceStart = session.attendance_window_start
+    const attendanceEnd = session.attendance_window_end
+    
+    return currentTime >= attendanceStart && currentTime <= attendanceEnd
+  }
+
   const fetchAvailableSessions = async () => {
     try {
       setLoading(true)
+      setError('')
       const today = new Date().toISOString().split('T')[0]
       
-      // Get today's sessions for the student
+      console.log('Fetching sessions for date:', today)
+      
+      // Get today's sessions
       const response = await apiClient.get(`/courses/sessions/?scheduled_date=${today}`)
       const todaySessions = response.results || response || []
       
-      // Filter sessions where attendance is open or about to open
-      const now = new Date()
-      const currentTime = now.toTimeString().substring(0, 5) // HH:MM format
+      console.log('API Response:', todaySessions)
       
-      const availableForAttendance = todaySessions.filter((session: Session) => {
-        const attendanceStart = session.attendance_window_start
-        const attendanceEnd = session.attendance_window_end
-        
-        // Check if current time is within attendance window or session is about to start
-        return currentTime >= attendanceStart && currentTime <= attendanceEnd
-      })
+      // Don't filter - show ALL sessions and let UI show status
+      setAvailableSessions(todaySessions)
       
-      setAvailableSessions(availableForAttendance)
-    } catch (error) {
+      if (todaySessions.length === 0) {
+        setError('No classes scheduled for today.')
+      }
+      
+    } catch (error: any) {
       console.error('Error fetching sessions:', error)
-      setError('Failed to fetch available sessions')
+      setError(`Failed to fetch sessions: ${error.message}`)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleMarkAttendance = async (sessionId: number, method: 'manual' | 'face') => {
-    setLoading(true)
-    setError('')
-    setSuccess('')
-
+  const handleFaceRecognition = async (sessionId: number) => {
     try {
-      let faceVerified = false
-      let capturedImage = ''
-
-      if (method === 'face') {
-        setIsFaceScanning(true)
-        const faceResult = await new Promise<{verified: boolean, capturedImage?: string, error?: string}>((resolve) => {
-          setFaceScannerCallback(() => resolve)
-        })
-
-        setIsFaceScanning(false)
-        
-        if (!faceResult.verified) {
-          // Enhanced error handling for face verification failures
-          const errorMsg = faceResult.error || 'Face verification failed'
-          setError(`❌ ${errorMsg}`)
-          return
-        }
-
-        faceVerified = true
-        capturedImage = faceResult.imageData || '' // Assuming imageData is the correct property from FaceRecognitionResult
-        setSuccess('✅ Face verified successfully!')
+      setError('')
+      setSuccess('')
+      setMarkingAttendance(sessionId)
+      
+      const session = availableSessions.find(s => s.id === sessionId)
+      if (!session) {
+        setError('❌ Session not found')
+        return
       }
 
-      const response = await apiClient.post('/courses/attendance/', {
-        class_session_id: sessionId,
-        face_verified: faceVerified,
-        captured_image: capturedImage,
-        notes: method === 'face' ? 'Marked via face recognition' : 'Marked manually'
-      })
+      setSelectedSessionForScanning(session)
+      setShowFaceScanner(true)
+    } catch (error: any) {
+      console.error('Face recognition error:', error)
+      setError('❌ Failed to start face recognition')
+    } finally {
+      setMarkingAttendance(null)
+    }
+  }
 
-      // Success feedback with status indicator
-      const statusIcon = method === 'face' ? '📷✅' : '✅'
-      const methodText = method === 'face' ? 'face recognition' : 'manual marking'
-      setSuccess(`${statusIcon} Attendance marked successfully via ${methodText}!`)
+  const handleFaceVerificationComplete = async (result: { success: boolean; imageData?: string; error?: string }) => {
+    setShowFaceScanner(false)
+    
+    if (!selectedSessionForScanning) {
+      setError('❌ Session not found')
+      return
+    }
+
+    if (!result.success) {
+      setError(result.error || '❌ Face verification failed. Please try again.')
+      setSelectedSessionForScanning(null)
+      return
+    }
+
+    try {
+      setMarkingAttendance(selectedSessionForScanning.id)
       
-      // Refresh sessions to show updated attendance status
-      fetchAvailableSessions()
+      // Create FormData for sending image
+      const formData = new FormData()
+      
+      // Convert base64 image to blob
+      if (result.imageData) {
+        const response = await fetch(result.imageData)
+        const blob = await response.blob()
+        formData.append('image', blob, 'face_capture.jpg')
+      }
+      
+      formData.append('class_session_id', selectedSessionForScanning.id.toString())
+
+      console.log('Sending face verification and attendance marking request...')
+
+      // Use the uploadFile method for FormData
+      const response = await apiClient.uploadFile('/face/verify-and-mark-attendance/', formData)
+
+      if (response.success) {
+        setSuccess(`📷✅ ${response.message}`)
+        
+        // Refresh sessions to show updated attendance status
+        await fetchAvailableSessions()
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccess(''), 5000)
+      } else {
+        setError(`❌ ${response.error || 'Attendance marking failed'}`)
+      }
 
     } catch (error: any) {
       console.error('Attendance marking error:', error)
       
-      // Enhanced error handling with specific error types
-      if (error.response?.data) {
-        const errorData = error.response.data
-        
-        // Handle already marked attendance with special UI
-        if (errorData.error_type === 'already_marked') {
-          const details = errorData.details
-          const icon = errorData.icon || '✅'
-          const statusBadge = details.face_verified ? '📷' : '📝'
+      const errorData = error.response?.data || error
+      
+      if (errorData?.error_type === 'already_marked') {
+        const details = errorData.details
+        setError(`
+          ✅ Attendance already marked for this session!
           
-          setError(`
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <div class="flex items-center">
-                <span class="text-2xl mr-3">${icon}</span>
-                <div>
-                  <h4 class="font-semibold text-blue-900">Attendance Already Marked</h4>
-                  <p class="text-blue-700 mt-1">
-                    ${statusBadge} ${details.display_status} - ${details.marked_time} on ${details.marked_date}
-                  </p>
-                  <p class="text-sm text-blue-600">
-                    Course: ${details.course_code} - ${details.session_title}
-                  </p>
-                </div>
-              </div>
-            </div>
-          `)
-          return
-        }
+          📋 Status: ${details.status}
+          🕐 Marked at: ${new Date(details.marked_at).toLocaleString()}
+          ${details.face_verified ? '📷 Face Verified' : '📝 Manual Entry'}
+          📚 Course: ${details.course_code} - ${details.session_title}
+        `)
         
-        // Handle face recognition specific errors
-        if (errorData.error_type === 'no_face_detected') {
-          setError(`
-            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div class="flex items-center mb-2">
-                <span class="text-2xl mr-3">📷❌</span>
-                <h4 class="font-semibold text-orange-900">No Face Detected</h4>
-              </div>
-              <p class="text-orange-700 mb-2">${errorData.error}</p>
-              <div class="text-sm text-orange-600">
-                <p class="font-medium mb-1">Try these suggestions:</p>
-                <ul class="list-disc list-inside space-y-1">
-                  ${errorData.suggestions?.map((s: string) => `<li>${s}</li>`).join('') || ''}
-                </ul>
-              </div>
-            </div>
-          `)
-        } else if (errorData.error_type === 'verification_failed') {
-          setError(`
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div class="flex items-center mb-2">
-                <span class="text-2xl mr-3">🔍❌</span>
-                <h4 class="font-semibold text-red-900">Face Verification Failed</h4>
-              </div>
-              <p class="text-red-700 mb-2">${errorData.error}</p>
-              <div class="text-sm text-red-600">
-                <p class="font-medium mb-1">Suggestions:</p>
-                <ul class="list-disc list-inside space-y-1">
-                  ${errorData.suggestions?.map((s: string) => `<li>${s}</li>`).join('') || ''}
-                </ul>
-              </div>
-            </div>
-          `)
-        } else if (errorData.error_type === 'no_registered_face') {
-          setError(`
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div class="flex items-center mb-2">
-                <span class="text-2xl mr-3">👤❓</span>
-                <h4 class="font-semibold text-yellow-900">No Registered Face</h4>
-              </div>
-              <p class="text-yellow-700 mb-3">${errorData.error}</p>
-              <a href="/face-registration" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors">
-                📷 Register Your Face
-              </a>
-            </div>
-          `)
-        } else {
-          // Generic error handling
-          const errorIcon = errorData.error_type === 'technical_error' ? '⚠️' : '❌'
-          setError(`${errorIcon} ${errorData.error || errorData.message || 'Failed to mark attendance'}`)
-        }
+        // Refresh to show current status
+        await fetchAvailableSessions()
       } else {
-        setError('❌ Network error. Please check your connection and try again.')
+        setError(`❌ ${errorData?.error || error.message || 'Failed to mark attendance'}`)
       }
     } finally {
-      setLoading(false)
+      setMarkingAttendance(null)
+      setSelectedSessionForScanning(null)
     }
   }
 
-  const handleFaceVerificationComplete = async (result: FaceRecognitionResult) => {
-    setShowFaceScanner(false)
-    
-    if (!selectedSessionForScanning) {
-      setError('Session not found')
-      return
-    }
+  const handleManualMark = async (sessionId: number) => {
+    try {
+      setError('')
+      setSuccess('')
+      setMarkingAttendance(sessionId)
 
-    if (result.success) {
-      await handleMarkAttendance(selectedSessionForScanning.id, 'face')
-    } else {
-      setError(result.error || 'Face verification failed. Please try again.')
+      const session = availableSessions.find(s => s.id === sessionId)
+      if (!session) {
+        setError('❌ Session not found')
+        return
+      }
+
+      const attendanceData = {
+        class_session_id: sessionId,
+        face_verified: false,
+        notes: 'Marked manually'
+      }
+
+      console.log('Saving manual attendance:', attendanceData)
+
+      const response = await apiClient.post('/courses/attendance/', attendanceData)
+
+      setSuccess('✅ Attendance marked manually!')
+      
+      // Refresh sessions to show updated attendance status
+      await fetchAvailableSessions()
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000)
+
+    } catch (error: any) {
+      console.error('Manual attendance error:', error)
+      
+      const errorData = error.response?.data
+      
+      if (errorData?.error_type === 'already_marked') {
+        const details = errorData.details
+        setError(`
+          ✅ Attendance already marked for this session!
+          
+          📋 Status: ${details.status}
+          🕐 Marked at: ${new Date(details.marked_at).toLocaleString()}
+          ${details.face_verified ? '📷 Face Verified' : '📝 Manual Entry'}
+        `)
+        
+        await fetchAvailableSessions()
+      } else {
+        setError(`❌ ${errorData?.error || error.message || 'Failed to mark attendance'}`)
+      }
+    } finally {
+      setMarkingAttendance(null)
     }
-    
-    setSelectedSessionForScanning(null)
   }
 
   const getAttendanceStatus = (session: Session) => {
     const now = new Date()
-    const currentTime = now.toTimeString().substring(0, 5)
-    const sessionStart = session.start_time
+    const currentTime = now.toTimeString().substring(0, 5) // HH:MM format
+    
+    const attendanceStart = session.attendance_window_start
     const attendanceEnd = session.attendance_window_end
     
-    if (currentTime < session.attendance_window_start) {
-      return { status: 'not_open', message: 'Attendance not open yet', color: 'gray' }
+    if (currentTime < attendanceStart) {
+      return 'upcoming'
     } else if (currentTime > attendanceEnd) {
-      return { status: 'closed', message: 'Attendance window closed', color: 'red' }
-    } else if (currentTime <= sessionStart) {
-      return { status: 'on_time', message: 'Mark attendance (On Time)', color: 'green' }
+      return 'closed'
     } else {
-      return { status: 'late', message: 'Mark attendance (Late)', color: 'yellow' }
+      return 'open'
     }
   }
-
-  const isAttendanceOpen = (session: Session) => {
-    const now = new Date();
-    const currentTime = now.toTimeString().substring(0, 5);
-    return currentTime >= session.attendance_window_start && currentTime <= session.attendance_window_end;
-  };
 
   if (!isStudent) {
     return (
@@ -280,13 +277,13 @@ export default function MarkAttendancePage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Mark Attendance</h1>
-          <p className="text-gray-600 mt-2">Mark your attendance for today's classes</p>
+          <p className="text-gray-600 mt-2">Mark your attendance for today's classes using face recognition or manual entry</p>
         </div>
 
         {/* Success/Error Messages */}
         {success && (
           <div className="mb-6 bg-green-50 border border-green-200 rounded-md p-4">
-            <p className="text-green-700">{success}</p>
+            <p className="text-green-700 whitespace-pre-line">{success}</p>
             <button 
               onClick={() => setSuccess('')}
               className="mt-2 text-green-600 hover:text-green-800 text-sm underline"
@@ -298,7 +295,7 @@ export default function MarkAttendancePage() {
         
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-700 whitespace-pre-line">{error}</p>
             <button 
               onClick={() => setError('')}
               className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
@@ -321,12 +318,13 @@ export default function MarkAttendancePage() {
                 <div className="text-6xl mb-4">📅</div>
                 <h3 className="text-lg font-medium text-gray-900">No Sessions Available</h3>
                 <p className="text-gray-500 mt-2">
-                  You don't have any classes scheduled for today or all attendance windows have closed.
+                  You don't have any classes scheduled for today.
                 </p>
               </div>
             ) : (
               availableSessions.map((session) => {
                 const attendanceStatus = getAttendanceStatus(session)
+                const isMarking = markingAttendance === session.id
                 
                 return (
                   <div key={session.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -343,7 +341,7 @@ export default function MarkAttendancePage() {
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  📝 ✅ Marked
+                                  📝 ✅ Manually Marked
                                 </span>
                               )}
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -360,6 +358,7 @@ export default function MarkAttendancePage() {
                           <p>🕐 {session.start_time} - {session.end_time}</p>
                           <p>📍 {session.effective_location}</p>
                           <p>🎓 {session.course_assignment.course.code} - {session.course_assignment.course.title}</p>
+                          <p>👨‍🏫 {session.course_assignment.lecturer.full_name}</p>
                         </div>
                       </div>
                       
@@ -398,14 +397,26 @@ export default function MarkAttendancePage() {
                       <>
                         {/* Attendance Window Status */}
                         <div className="mb-4">
-                          {!isAttendanceOpen(session) ? (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          {attendanceStatus === 'upcoming' ? (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                               <div className="flex items-center">
                                 <span className="text-xl mr-2">⏳</span>
                                 <div>
-                                  <p className="text-yellow-800 text-sm font-medium">Attendance window not open</p>
-                                  <p className="text-yellow-600 text-xs">
-                                    Window: {session.attendance_window_start} - {session.attendance_window_end}
+                                  <p className="text-blue-800 text-sm font-medium">Attendance window not open yet</p>
+                                  <p className="text-blue-600 text-xs">
+                                    Window opens at {session.attendance_window_start}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : attendanceStatus === 'closed' ? (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                              <div className="flex items-center">
+                                <span className="text-xl mr-2">🔒</span>
+                                <div>
+                                  <p className="text-red-800 text-sm font-medium">Attendance window closed</p>
+                                  <p className="text-red-600 text-xs">
+                                    Window closed at {session.attendance_window_end}
                                   </p>
                                 </div>
                               </div>
@@ -427,33 +438,35 @@ export default function MarkAttendancePage() {
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                          {isAttendanceOpen(session) && (
+                          {attendanceStatus === 'open' && (
                             <>
                               <button
-                                onClick={() => handleMarkAttendance(session.id, 'face')}
-                                disabled={loading}
+                                onClick={() => handleFaceRecognition(session.id)}
+                                disabled={isMarking}
                                 className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                {loading ? (
+                                {isMarking ? (
                                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                 ) : (
                                   <span className="mr-2">📷</span>
                                 )}
-                                Face Recognition
+                                {isMarking ? 'Processing...' : 'Face Recognition'}
                               </button>
                               
-                              <button
-                                onClick={() => handleMarkAttendance(session.id, 'manual')}
-                                disabled={loading}
-                                className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {loading ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                                ) : (
-                                  <span className="mr-2">📝</span>
-                                )}
-                                Manual Mark
-                              </button>
+                              {session.attendance_method === 'both' && (
+                                <button
+                                  onClick={() => handleManualMark(session.id)}
+                                  disabled={isMarking}
+                                  className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {isMarking ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                                  ) : (
+                                    <span className="mr-2">📝</span>
+                                  )}
+                                  {isMarking ? 'Processing...' : 'Manual Mark'}
+                                </button>
+                              )}
                             </>
                           )}
                         </div>
@@ -474,6 +487,7 @@ export default function MarkAttendancePage() {
             onClose={() => {
               setShowFaceScanner(false)
               setSelectedSessionForScanning(null)
+              setMarkingAttendance(null)
             }}
           />
         )}

@@ -572,6 +572,17 @@ def verify_attendance_face(request):
                 'verified': False
             }, status=400)
         
+        # Get user's registered face encoding
+        try:
+            user_face_encoding = FaceEncoding.objects.get(user=request.user, is_active=True)
+        except FaceEncoding.DoesNotExist:
+            return Response({
+                'verified': False,
+                'error': 'No registered face found. Please register your face first before marking attendance.',
+                'error_type': 'no_registered_face',
+                'redirect_to': '/face-registration'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         # Compare with registered face
         try:
             # Get registered encoding (it's already a list, not JSON string)
@@ -592,12 +603,12 @@ def verify_attendance_face(request):
             # Determine if verification passed
             verification_passed = confidence >= 0.6
             
-            # Log verification attempt
+            # Log verification attempt (fix the image_file issue)
             face_service.log_recognition_attempt(
                 user=request.user,
                 status='success' if verification_passed else 'failed_verification',
                 confidence_score=float(confidence),
-                image_file=image_file,
+                image_file=None,  # No file object for base64 data
                 request=request
             )
             
@@ -624,20 +635,20 @@ def verify_attendance_face(request):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
         except Exception as e:
-            # Log technical error
+            # Log technical error (fix the image_file issue)
             logger.error(f"Face comparison error for user {request.user.id}: {str(e)}")
             face_service.log_recognition_attempt(
                 user=request.user,
                 status='technical_error',
                 confidence_score=0.0,
-                image_file=image_file,
+                image_file=None,  # No file object for base64 data
                 request=request,
                 error_details=str(e)
             )
             
             return Response({
                 'verified': False,
-                'error': 'Technical error during face verification. Please try again.',
+                'error': f'Unexpected error: {str(e)}',
                 'error_type': 'technical_error',
                 'suggestions': [
                     'Check your internet connection',
@@ -668,3 +679,250 @@ def face_registration_status(request):
         
     except Exception as e:
         return Response({'error': str(e)}, status=400) 
+
+
+class FaceVerifyAndMarkAttendanceView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        """Verify face and mark attendance if successful"""
+        from courses.models import ClassSession, ClassAttendance, Enrollment
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        
+        # Only students can mark attendance
+        if not (hasattr(request.user, 'role') and request.user.role == 'student'):
+            return Response({
+                'success': False,
+                'error': 'Only students can mark attendance via face recognition'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Get class session ID from request
+        class_session_id = request.data.get('class_session_id')
+        if not class_session_id:
+            return Response({
+                'success': False,
+                'error': 'class_session_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate class session
+        try:
+            class_session = ClassSession.objects.get(id=class_session_id, is_active=True)
+        except ClassSession.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Invalid or inactive class session'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if student is enrolled
+        enrollment = Enrollment.objects.filter(
+            student=request.user,
+            course_assignment=class_session.course_assignment,
+            status='enrolled'
+        ).first()
+        
+        if not enrollment:
+            return Response({
+                'success': False,
+                'error': 'You are not enrolled in this course'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Check attendance window
+        now = timezone.now()
+        session_date = class_session.scheduled_date
+        
+        window_start = timezone.make_aware(
+            timezone.datetime.combine(session_date, class_session.attendance_window_start)
+        )
+        window_end = timezone.make_aware(
+            timezone.datetime.combine(session_date, class_session.attendance_window_end)
+        )
+        
+        if now < window_start:
+            return Response({
+                'success': False,
+                'error': 'Attendance window has not opened yet',
+                'window_start': window_start.isoformat(),
+                'current_time': now.isoformat()
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if now > window_end:
+            return Response({
+                'success': False,
+                'error': 'Attendance window has closed',
+                'window_end': window_end.isoformat(),
+                'current_time': now.isoformat()
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check for existing attendance
+        existing_attendance = ClassAttendance.objects.filter(
+            student=request.user,
+            class_session=class_session
+        ).first()
+        
+        if existing_attendance:
+            return Response({
+                'success': False,
+                'error': 'Attendance already marked for this session',
+                'error_type': 'already_marked',
+                'details': {
+                    'status': existing_attendance.status,
+                    'marked_at': existing_attendance.marked_at.isoformat(),
+                    'face_verified': existing_attendance.face_verified,
+                    'session_title': class_session.title,
+                    'course_code': class_session.course_assignment.course.code
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Process face verification
+        if 'image' not in request.FILES:
+            return Response({
+                'success': False,
+                'error': 'No image file provided'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get user's face encoding
+        try:
+            face_encoding = FaceEncoding.objects.get(user=request.user, is_active=True)
+        except FaceEncoding.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'No face encoding found. Please register your face first',
+                'redirect_to': '/face-registration'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        image_file = request.FILES['image']
+        face_service = FaceRecognitionService()
+
+        # Process uploaded image
+        result = face_service.get_face_encoding(image_file)
+
+        if not result['success']:
+            # Log failed attempt
+            face_service.log_recognition_attempt(
+                user=request.user,
+                status='no_face' if 'No face detected' in result.get('error', '') else 'failed',
+                confidence_score=0.0,
+                image_file=image_file,
+                request=request
+            )
+            return Response({
+                'success': False,
+                'error': result.get('error', 'Face processing failed')
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Compare faces
+        comparison_result = face_service.compare_faces(
+            face_encoding.encoding,
+            result['encoding']
+        )
+
+        if not comparison_result['is_match']:
+            # Log failed recognition
+            face_service.log_recognition_attempt(
+                user=request.user,
+                status='failed_verification',
+                confidence_score=comparison_result['confidence'],
+                image_file=image_file,
+                request=request
+            )
+            return Response({
+                'success': False,
+                'verified': False,
+                'error': 'Face verification failed. Face does not match registered face.',
+                'confidence': comparison_result['confidence'],
+                'threshold': comparison_result.get('tolerance', 0.6),
+                'suggestions': [
+                    'Ensure good lighting conditions',
+                    'Face the camera directly',
+                    'Remove glasses or accessories if worn during registration',
+                    'Try again with a clearer image'
+                ]
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Face verification successful - mark attendance
+        try:
+            with transaction.atomic():
+                # Determine attendance status
+                session_start = timezone.make_aware(
+                    timezone.datetime.combine(session_date, class_session.start_time)
+                )
+                attendance_status = 'late' if now > session_start else 'present'
+                
+                # Create attendance record
+                attendance = ClassAttendance.objects.create(
+                    student=request.user,
+                    class_session=class_session,
+                    status=attendance_status,
+                    face_verified=True,
+                    notes=f"Marked via face recognition. Confidence: {comparison_result['confidence']:.2%}"
+                )
+                
+                # Save captured image for audit trail
+                try:
+                    import base64
+                    import os
+                    from django.conf import settings
+                    from datetime import datetime
+                    
+                    # Create unique filename
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"attendance_{request.user.id}_{class_session.id}_{timestamp}.jpg"
+                    
+                    # Ensure directory exists
+                    media_dir = os.path.join(settings.MEDIA_ROOT, 'attendance_photos')
+                    os.makedirs(media_dir, exist_ok=True)
+                    
+                    # Save image file
+                    image_path = os.path.join(media_dir, filename)
+                    with open(image_path, 'wb') as f:
+                        for chunk in image_file.chunks():
+                            f.write(chunk)
+                    
+                    # Update attendance notes with image info
+                    attendance.notes += f"\nCaptured image: {filename}"
+                    attendance.save()
+                    
+                except Exception as e:
+                    # Don't fail attendance saving if image saving fails
+                    attendance.notes += f"\nImage save failed: {str(e)}"
+                    attendance.save()
+
+                # Log successful recognition and attendance marking
+                face_service.log_recognition_attempt(
+                    user=request.user,
+                    status='success',
+                    confidence_score=comparison_result['confidence'],
+                    image_file=image_file,
+                    request=request
+                )
+
+                # Update recognition stats
+                stats, _ = FaceRecognitionStats.objects.get_or_create(user=request.user)
+                stats.update_stats()
+
+                return Response({
+                    'success': True,
+                    'verified': True,
+                    'message': f'Attendance marked successfully via face recognition!',
+                    'attendance': {
+                        'id': attendance.id,
+                        'status': attendance.status,
+                        'marked_at': attendance.marked_at.isoformat(),
+                        'face_verified': attendance.face_verified,
+                        'session_title': class_session.title,
+                        'course_code': class_session.course_assignment.course.code,
+                        'course_title': class_session.course_assignment.course.title
+                    },
+                    'verification': {
+                        'confidence': comparison_result['confidence'],
+                        'threshold': comparison_result.get('tolerance', 0.6)
+                    }
+                })
+
+        except Exception as e:
+            logger.error(f"Failed to mark attendance: {str(e)}")
+            return Response({
+                'success': False,
+                'error': f'Failed to mark attendance: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 

@@ -191,9 +191,9 @@ class FaceRecognitionService:
             logger.error(f"Error extracting face encodings: {str(e)}")
             return []
 
-    def compare_faces(self, known_encoding: np.ndarray, unknown_encoding: np.ndarray, threshold: float = 0.6) -> float:
+    def compare_faces(self, known_encoding: np.ndarray, unknown_encoding: np.ndarray, threshold: float = 0.6) -> Dict[str, any]:
         """
-        Compare two face encodings and return confidence score
+        Compare two face encodings and return comparison result
         
         Args:
             known_encoding: Known face encoding
@@ -201,20 +201,40 @@ class FaceRecognitionService:
             threshold: Similarity threshold
             
         Returns:
-            Confidence score (higher is more similar)
+            Dictionary with comparison results
         """
         try:
+            # Ensure encodings are numpy arrays
+            if isinstance(known_encoding, list):
+                known_encoding = np.array(known_encoding)
+            if isinstance(unknown_encoding, list):
+                unknown_encoding = np.array(unknown_encoding)
+            
             # Calculate face distance
             face_distance = face_recognition.face_distance([known_encoding], unknown_encoding)[0]
             
             # Convert distance to confidence (1 - distance)
             confidence = 1 - face_distance
             
-            return confidence
+            # Determine if faces match based on threshold
+            is_match = confidence >= threshold
+            
+            return {
+                'is_match': is_match,
+                'confidence': float(confidence),
+                'distance': float(face_distance),
+                'tolerance': threshold
+            }
             
         except Exception as e:
             logger.error(f"Error comparing faces: {str(e)}")
-            return 0.0
+            return {
+                'is_match': False,
+                'confidence': 0.0,
+                'distance': 1.0,
+                'tolerance': threshold,
+                'error': str(e)
+            }
     
     def _analyze_image_quality(self, image_array: np.ndarray) -> Dict[str, float]:
         """

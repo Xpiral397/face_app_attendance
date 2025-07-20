@@ -112,7 +112,7 @@ export default function CollegesPage() {
             ...dept,
             courses: coursesWithStats,
             total_courses: coursesWithStats.length,
-            active_courses: coursesWithStats.filter(c => c.is_active).length,
+            active_courses: coursesWithStats.filter((c: Course) => c.is_active).length,
             total_students: coursesWithStats.reduce((sum, course) => sum + (course.enrollment_count || 0), 0)
           }
         })

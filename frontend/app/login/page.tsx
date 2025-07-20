@@ -67,16 +67,19 @@ export default function LoginPage() {
     const success = await login(formData)
     
     if (success) {
-      // Get user data to determine redirect based on role
-      const userData = JSON.parse(localStorage.getItem('user') || '{}')
-      
-      if (userData.role === 'student') {
-        router.push('/student-courses')
-      } else if (userData.role === 'lecturer') {
-        router.push('/my-courses')
-      } else {
-        router.push('/dashboard')  // Admin and others
-      }
+      // Wait a moment for user data to be set in localStorage
+      setTimeout(() => {
+        const userData = JSON.parse(localStorage.getItem('user') || '{}')
+        console.log('User data for redirect:', userData)
+        
+        if (userData.role === 'student') {
+          router.push('/student-courses')
+        } else if (userData.role === 'lecturer') {
+          router.push('/my-courses')
+        } else {
+          router.push('/dashboard')  // Admin and others
+        }
+      }, 100) // Small delay to ensure localStorage is updated
     } else {
       setError('Invalid email or password. Please try again.')
     }
