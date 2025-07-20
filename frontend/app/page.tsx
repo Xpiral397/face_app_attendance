@@ -6,14 +6,21 @@ import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
 export default function LandingPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard')
+    if (isAuthenticated && user) {
+      // Redirect based on user role
+      if (user.role === 'student') {
+        router.push('/student-courses')
+      } else if (user.role === 'lecturer') {
+        router.push('/my-courses')
+      } else {
+        router.push('/dashboard')  // Admin and others
+      }
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, user, router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">

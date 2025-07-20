@@ -6,29 +6,218 @@ from django.db.models import Q, Count
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
 
 from .models import (
     College, Department, Course, CourseAssignment, 
-    Enrollment, ClassSession, Notification, ClassAttendance
+    Enrollment, ClassSession, Notification, ClassAttendance, Room
 )
 from .serializers import (
     CollegeSerializer, DepartmentSerializer, CourseSerializer, 
     CourseAssignmentSerializer, EnrollmentSerializer, 
-    ClassSessionSerializer, NotificationSerializer, ClassAttendanceSerializer
+    ClassSessionSerializer, NotificationSerializer, ClassAttendanceSerializer, RoomSerializer, UserBasicSerializer
 )
 from face_recognition_app.models import FaceEncoding
 
 User = get_user_model()
 
+# Custom permission classes
+class PublicReadWriteAuthPermission(permissions.BasePermission):
+    """
+    Allow public read access but require authentication for write operations
+    """
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user and request.user.is_authenticated
+
+class AdminWritePublicReadPermission(permissions.BasePermission):
+    """
+    Allow public read access but require admin authentication for write operations
+    """
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user and request.user.is_authenticated and getattr(request.user, 'role', None) == 'admin'
+
+# Room Management Views
+class RoomListCreateView(generics.ListCreateAPIView):
+    queryset = Room.objects.filter(is_available=True)
+    serializer_class = RoomSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['room_type', 'building', 'floor']
+    search_fields = ['code', 'name', 'building', 'location']
+    
+    def get_queryset(self):
+        return Room.objects.filter(is_available=True).order_by('building', 'floor', 'code')
+    
+    def perform_create(self, serializer):
+        # Only admins can create rooms
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can create rooms")
+        serializer.save(created_by=self.request.user)
+
+class RoomDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Room.objects.filter(is_available=True)
+    serializer_class = RoomSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_update(self, serializer):
+        # Only admins can update rooms
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can update rooms")
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        # Only admins can delete rooms
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can delete rooms")
+        instance.is_available = False
+        instance.save()
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_room_availability(request):
+    """Check room availability for specific date and time"""
+    room_id = request.query_params.get('room_id')
+    date = request.query_params.get('date')
+    start_time = request.query_params.get('start_time')
+    end_time = request.query_params.get('end_time')
+    session_id = request.query_params.get('session_id')  # Exclude current session when editing
+    
+    if not all([room_id, date, start_time, end_time]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        room = Room.objects.get(id=room_id)
+        conflicts = ClassSession.objects.filter(
+            room=room,
+            scheduled_date=date,
+            is_active=True,
+            is_cancelled=False
+        )
+        
+        if session_id:
+            conflicts = conflicts.exclude(id=session_id)
+        
+        start_time_obj = datetime.strptime(start_time, '%H:%M').time()
+        end_time_obj = datetime.strptime(end_time, '%H:%M').time()
+        
+        conflicting_sessions = []
+        for session in conflicts:
+            if (start_time_obj < session.end_time and end_time_obj > session.start_time):
+                conflicting_sessions.append({
+                    'id': session.id,
+                    'title': session.title,
+                    'course': session.course_assignment.course.code,
+                    'start_time': session.start_time,
+                    'end_time': session.end_time
+                })
+        
+        return Response({
+            'room': {
+                'id': room.id,
+                'name': room.name,
+                'code': room.code
+            },
+            'is_available': len(conflicting_sessions) == 0,
+            'conflicts': conflicting_sessions
+        })
+        
+    except Room.DoesNotExist:
+        return Response({'error': 'Room not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def lecturer_free_times(request):
+    """Find free time slots for a lecturer"""
+    lecturer_id = request.query_params.get('lecturer_id')
+    date = request.query_params.get('date')
+    duration = int(request.query_params.get('duration', 120))  # Duration in minutes
+    
+    if not all([lecturer_id, date]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        lecturer = User.objects.get(id=lecturer_id, role='lecturer')
+        
+        # Get lecturer's existing sessions for the date
+        existing_sessions = ClassSession.objects.filter(
+            course_assignment__lecturer=lecturer,
+            scheduled_date=date,
+            is_active=True,
+            is_cancelled=False
+        ).order_by('start_time')
+        
+        # Define working hours (8 AM to 6 PM)
+        working_start = time(8, 0)
+        working_end = time(18, 0)
+        
+        free_slots = []
+        current_time = working_start
+        
+        for session in existing_sessions:
+            # Check if there's a gap before this session
+            if current_time < session.start_time:
+                gap_minutes = (datetime.combine(datetime.today(), session.start_time) - 
+                             datetime.combine(datetime.today(), current_time)).seconds // 60
+                
+                if gap_minutes >= duration:
+                    free_slots.append({
+                        'start_time': current_time.strftime('%H:%M'),
+                        'end_time': session.start_time.strftime('%H:%M'),
+                        'duration_minutes': gap_minutes
+                    })
+            
+            current_time = max(current_time, session.end_time)
+        
+        # Check for time after the last session
+        if current_time < working_end:
+            remaining_minutes = (datetime.combine(datetime.today(), working_end) - 
+                               datetime.combine(datetime.today(), current_time)).seconds // 60
+            
+            if remaining_minutes >= duration:
+                free_slots.append({
+                    'start_time': current_time.strftime('%H:%M'),
+                    'end_time': working_end.strftime('%H:%M'),
+                    'duration_minutes': remaining_minutes
+                })
+        
+        return Response({
+            'lecturer': {
+                'id': lecturer.id,
+                'name': lecturer.full_name
+            },
+            'date': date,
+            'free_slots': free_slots,
+            'existing_sessions': [
+                {
+                    'title': session.title,
+                    'course': session.course_assignment.course.code,
+                    'start_time': session.start_time.strftime('%H:%M'),
+                    'end_time': session.end_time.strftime('%H:%M')
+                }
+                for session in existing_sessions
+            ]
+        })
+        
+    except User.DoesNotExist:
+        return Response({'error': 'Lecturer not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
 # College and Department Views
 class CollegeListCreateView(generics.ListCreateAPIView):
     queryset = College.objects.filter(is_active=True)
     serializer_class = CollegeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AdminWritePublicReadPermission]
     
     def perform_create(self, serializer):
         # Only admins can create colleges
@@ -39,7 +228,7 @@ class CollegeListCreateView(generics.ListCreateAPIView):
 class CollegeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = College.objects.all()
     serializer_class = CollegeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AdminWritePublicReadPermission]
     
     def perform_update(self, serializer):
         if self.request.user.role != 'admin':
@@ -55,7 +244,7 @@ class CollegeDetailView(generics.RetrieveUpdateDestroyAPIView):
 class DepartmentListCreateView(generics.ListCreateAPIView):
     queryset = Department.objects.filter(is_active=True)
     serializer_class = DepartmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AdminWritePublicReadPermission]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['college']
     
@@ -68,7 +257,7 @@ class DepartmentListCreateView(generics.ListCreateAPIView):
 class DepartmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AdminWritePublicReadPermission]
     
     def perform_update(self, serializer):
         if self.request.user.role != 'admin':
@@ -94,7 +283,7 @@ class CourseListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         
         # Students see courses from their department and level
-        if user.is_student:
+        if hasattr(user, 'role') and user.role == 'student':
             queryset = queryset.filter(
                 department=user.department,
                 level=user.level
@@ -103,7 +292,7 @@ class CourseListCreateView(generics.ListCreateAPIView):
         return queryset
     
     def perform_create(self, serializer):
-        if not self.request.user.is_admin:
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
             raise permissions.PermissionDenied("Only admins can create courses")
         serializer.save(created_by=self.request.user)
 
@@ -113,12 +302,12 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def perform_update(self, serializer):
-        if not self.request.user.is_admin:
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
             raise permissions.PermissionDenied("Only admins can update courses")
         serializer.save()
     
     def perform_destroy(self, instance):
-        if not self.request.user.is_admin:
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
             raise permissions.PermissionDenied("Only admins can delete courses")
         instance.is_active = False
         instance.save()
@@ -127,40 +316,52 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
 class CourseAssignmentListCreateView(generics.ListCreateAPIView):
     serializer_class = CourseAssignmentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['academic_year', 'semester', 'lecturer']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['course', 'academic_year', 'semester']  # Remove 'lecturer' from here
+    search_fields = ['course__code', 'course__title', 'lecturer__full_name']
     
     def get_queryset(self):
-        user = self.request.user
         queryset = CourseAssignment.objects.filter(is_active=True)
         
-        # Lecturers see only their assignments
-        if user.is_lecturer:
-            queryset = queryset.filter(lecturer=user)
+        # Handle lecturer parameter
+        lecturer_param = self.request.query_params.get('lecturer')
+        if lecturer_param == 'me':
+            # Filter by current user if they are a lecturer
+            if hasattr(self.request.user, 'role') and self.request.user.role == 'lecturer':
+                queryset = queryset.filter(lecturer=self.request.user)
+        elif lecturer_param:
+            # Filter by specific lecturer ID
+            queryset = queryset.filter(lecturer_id=lecturer_param)
+        elif hasattr(self.request.user, 'role') and self.request.user.role == 'lecturer':
+            # For lecturers without specific filter, show only their assignments
+            queryset = queryset.filter(lecturer=self.request.user)
         
-        return queryset
+        return queryset.select_related('course', 'lecturer', 'assigned_by')
     
     def perform_create(self, serializer):
-        if not self.request.user.is_admin:
+        # Only admins can create course assignments
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
             raise permissions.PermissionDenied("Only admins can create course assignments")
-        assignment = serializer.save(assigned_by=self.request.user)
-        
-        # Create notification for lecturer
-        Notification.objects.create(
-            recipient=assignment.lecturer,
-            sender=self.request.user,
-            notification_type='assignment_created',
-            title=f'New Course Assignment: {assignment.course.code}',
-            message=f'You have been assigned to teach {assignment.course.code} - {assignment.course.title} for {assignment.academic_year} {assignment.semester} semester.'
-        )
+        serializer.save(assigned_by=self.request.user)
 
 class CourseAssignmentDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = CourseAssignment.objects.all()
+    queryset = CourseAssignment.objects.filter(is_active=True)
     serializer_class = CourseAssignmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_update(self, serializer):
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can update course assignments")
+        serializer.save()
+    
+    def perform_destroy(self, instance):
+        if not hasattr(self.request.user, 'role') or self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can delete course assignments")
+        instance.is_active = False
+        instance.save()
 
 # Enrollment Views
-class EnrollmentListView(generics.ListAPIView):
+class EnrollmentListCreateView(generics.ListCreateAPIView):
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -169,292 +370,50 @@ class EnrollmentListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         
-        if user.is_student:
-            return Enrollment.objects.filter(student=user)
-        elif user.is_lecturer:
-            return Enrollment.objects.filter(course_assignment__lecturer=user)
-        else:  # Admin
-            return Enrollment.objects.all()
-
-class EnrollmentRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+        if hasattr(user, 'role') and user.role == 'admin':
+            return Enrollment.objects.all().select_related('student', 'course_assignment')
+        elif hasattr(user, 'role') and user.role == 'lecturer':
+            return Enrollment.objects.filter(
+                course_assignment__lecturer=user
+            ).select_related('student', 'course_assignment')
+        else:  # Student
+            return Enrollment.objects.filter(student=user).select_related('course_assignment')
     
-    def post(self, request):
-        if not request.user.is_student:
-            return Response(
-                {'error': 'Only students can request enrollment'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        assignment_id = request.data.get('course_assignment_id')
-        if not assignment_id:
-            return Response(
-                {'error': 'course_assignment_id is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            assignment = CourseAssignment.objects.get(id=assignment_id, is_active=True)
-        except CourseAssignment.DoesNotExist:
-            return Response(
-                {'error': 'Course assignment not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check if student's department matches course department
-        if request.user.department != assignment.course.department:
-            return Response(
-                {'error': 'You can only enroll in courses from your department'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Check if student's level matches course level
-        if request.user.level != assignment.course.level:
-            return Response(
-                {'error': 'You can only enroll in courses for your level'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Check if already enrolled
-        if Enrollment.objects.filter(student=request.user, course_assignment=assignment).exists():
-            return Response(
-                {'error': 'You have already requested enrollment for this course'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Create enrollment request
-        enrollment = Enrollment.objects.create(
-            student=request.user,
-            course_assignment=assignment
-        )
-        
-        # Create notification for lecturer
-        Notification.objects.create(
-            recipient=assignment.lecturer,
-            sender=request.user,
-            notification_type='enrollment_request',
-            title=f'New Enrollment Request for {assignment.course.code}',
-            message=f'{request.user.full_name} ({request.user.student_id}) has requested to enroll in {assignment.course.code}.',
-            related_enrollment=enrollment
-        )
-        
-        return Response(
-            EnrollmentSerializer(enrollment).data,
-            status=status.HTTP_201_CREATED
-        )
+    def perform_create(self, serializer):
+        # Students can only enroll themselves
+        if hasattr(self.request.user, 'role') and self.request.user.role == 'student':
+            # Get course_assignment_id from request data
+            course_assignment_id = self.request.data.get('course_assignment_id')
+            if course_assignment_id:
+                try:
+                    course_assignment = CourseAssignment.objects.get(id=course_assignment_id)
+                    serializer.save(
+                        student=self.request.user,
+                        course_assignment=course_assignment,
+                        enrolled_by=self.request.user
+                    )
+                except CourseAssignment.DoesNotExist:
+                    raise ValidationError("Course assignment not found")
+            else:
+                raise ValidationError("course_assignment_id is required")
+        elif hasattr(self.request.user, 'role') and self.request.user.role == 'admin':
+            serializer.save()
+        else:
+            raise permissions.PermissionDenied("You cannot create enrollments")
 
-class EnrollmentProcessView(APIView):
+class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self, request, pk):
-        try:
-            enrollment = Enrollment.objects.get(id=pk)
-        except Enrollment.DoesNotExist:
-            return Response(
-                {'error': 'Enrollment not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Only lecturer assigned to the course or admin can process
-        if not (request.user == enrollment.course_assignment.lecturer or request.user.is_admin):
-            return Response(
-                {'error': 'You are not authorized to process this enrollment'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        action = request.data.get('action')  # 'approve' or 'reject'
-        notes = request.data.get('notes', '')
-        
-        if action not in ['approve', 'reject']:
-            return Response(
-                {'error': 'Action must be either "approve" or "reject"'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        enrollment.status = 'approved' if action == 'approve' else 'rejected'
-        enrollment.processed_at = timezone.now()
-        enrollment.processed_by = request.user
-        enrollment.notes = notes
-        enrollment.save()
-        
-        # Create notification for student
-        notification_type = 'enrollment_approved' if action == 'approve' else 'enrollment_rejected'
-        message = f'Your enrollment request for {enrollment.course_assignment.course.code} has been {action}d.'
-        if notes:
-            message += f' Notes: {notes}'
-        
-        Notification.objects.create(
-            recipient=enrollment.student,
-            sender=request.user,
-            notification_type=notification_type,
-            title=f'Enrollment {action.title()}d: {enrollment.course_assignment.course.code}',
-            message=message,
-            related_enrollment=enrollment
-        )
-        
-        return Response(
-            EnrollmentSerializer(enrollment).data,
-            status=status.HTTP_200_OK
-        )
-
-# Class Session Views
-class ClassSessionListCreateView(generics.ListCreateAPIView):
-    serializer_class = ClassSessionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['course_assignment', 'class_type', 'scheduled_date']
     
     def get_queryset(self):
         user = self.request.user
         
-        if user.is_lecturer:
-            return ClassSession.objects.filter(course_assignment__lecturer=user, is_active=True)
-        elif user.is_student:
-            # Show sessions for courses student is enrolled in
-            enrolled_assignments = Enrollment.objects.filter(
-                student=user, status='approved'
-            ).values_list('course_assignment', flat=True)
-            return ClassSession.objects.filter(
-                course_assignment__in=enrolled_assignments, 
-                is_active=True
-            )
-        else:  # Admin
-            return ClassSession.objects.filter(is_active=True)
-    
-    def perform_create(self, serializer):
-        if not self.request.user.is_lecturer:
-            raise permissions.PermissionDenied("Only lecturers can create class sessions")
-        
-        # Ensure lecturer is assigned to the course
-        assignment = serializer.validated_data['course_assignment']
-        if assignment.lecturer != self.request.user:
-            raise permissions.PermissionDenied("You can only create sessions for your assigned courses")
-        
-        session = serializer.save()
-        
-        # Create notifications for enrolled students
-        enrolled_students = Enrollment.objects.filter(
-            course_assignment=assignment,
-            status='approved'
-        ).select_related('student')
-        
-        notifications = []
-        for enrollment in enrolled_students:
-            notifications.append(Notification(
-                recipient=enrollment.student,
-                sender=self.request.user,
-                notification_type='class_scheduled',
-                title=f'New Class: {session.course_assignment.course.code}',
-                message=f'A new class "{session.title}" has been scheduled for {session.scheduled_date} at {session.start_time}.',
-                related_class_session=session
-            ))
-        
-        Notification.objects.bulk_create(notifications)
-
-class ClassSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ClassSession.objects.all()
-    serializer_class = ClassSessionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-# Attendance Views
-class MarkClassAttendanceView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self, request):
-        if not request.user.is_student:
-            return Response(
-                {'error': 'Only students can mark attendance'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        session_id = request.data.get('session_id')
-        try:
-            session = ClassSession.objects.get(id=session_id, is_active=True)
-        except ClassSession.DoesNotExist:
-            return Response(
-                {'error': 'Class session not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Check if student is enrolled
-        if not Enrollment.objects.filter(
-            student=request.user,
-            course_assignment=session.course_assignment,
-            status='approved'
-        ).exists():
-            return Response(
-                {'error': 'You are not enrolled in this course'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # Check if attendance window is open
-        if not session.is_attendance_open:
-            return Response(
-                {'error': 'Attendance window is not open for this session'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Check if already marked attendance
-        if ClassAttendance.objects.filter(class_session=session, student=request.user).exists():
-            return Response(
-                {'error': 'You have already marked attendance for this session'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Handle face verification if image provided
-        face_verified = False
-        if 'image' in request.FILES:
-            try:
-                face_encoding = FaceEncoding.objects.get(user=request.user, is_active=True)
-                # Here you would implement face verification logic
-                # For now, we'll assume verification is successful
-                face_verified = True
-            except FaceEncoding.DoesNotExist:
-                return Response(
-                    {'error': 'No face encoding found. Please register your face first.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        
-        # Determine attendance status based on time
-        now = timezone.now().time()
-        status_value = 'present'
-        if now > session.start_time:
-            # Calculate minutes late
-            start_datetime = timezone.datetime.combine(session.scheduled_date, session.start_time)
-            now_datetime = timezone.now()
-            if start_datetime.date() == now_datetime.date():
-                minutes_late = (now_datetime.time().hour * 60 + now_datetime.time().minute) - \
-                             (session.start_time.hour * 60 + session.start_time.minute)
-                if minutes_late > 15:  # More than 15 minutes late
-                    status_value = 'late'
-        
-        # Create attendance record
-        attendance = ClassAttendance.objects.create(
-            class_session=session,
-            student=request.user,
-            status=status_value,
-            face_verified=face_verified,
-            notes=request.data.get('notes', '')
-        )
-        
-        return Response(
-            ClassAttendanceSerializer(attendance).data,
-            status=status.HTTP_201_CREATED
-        )
-
-class ClassAttendanceListView(generics.ListAPIView):
-    serializer_class = ClassAttendanceSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        session_id = self.kwargs['session_id']
-        session = get_object_or_404(ClassSession, id=session_id)
-        
-        # Only lecturer of the course or admin can view attendance
-        if not (self.request.user == session.course_assignment.lecturer or self.request.user.is_admin):
-            raise permissions.PermissionDenied("You are not authorized to view this attendance data")
-        
-        return ClassAttendance.objects.filter(class_session=session)
+        if hasattr(user, 'role') and user.role == 'admin':
+            return Enrollment.objects.all()
+        elif hasattr(user, 'role') and user.role == 'lecturer':
+            return Enrollment.objects.filter(course_assignment__lecturer=user)
+        else:  # Student
+            return Enrollment.objects.filter(student=user)
 
 # Notification Views
 class NotificationListView(generics.ListAPIView):
@@ -464,166 +423,1299 @@ class NotificationListView(generics.ListAPIView):
     filterset_fields = ['is_read', 'notification_type']
     
     def get_queryset(self):
+        return Notification.objects.filter(
+            recipient=self.request.user
+        ).order_by('-created_at')
+
+class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
         return Notification.objects.filter(recipient=self.request.user)
 
-class MarkNotificationReadView(APIView):
+# Session Management Views
+class ClassSessionListCreateView(generics.ListCreateAPIView):
+    serializer_class = ClassSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['course_assignment__course', 'course_assignment__lecturer', 'class_type', 'scheduled_date', 'room']
+    search_fields = ['title', 'course_assignment__course__code', 'course_assignment__course__title']
     
-    def post(self, request, pk):
+    def get_queryset(self):
+        queryset = ClassSession.objects.filter(is_active=True)
+        
+        # Filter by lecturer for lecturers
+        if hasattr(self.request.user, 'role') and self.request.user.role == 'lecturer':
+            lecturer_param = self.request.query_params.get('lecturer')
+            if lecturer_param == 'me':
+                queryset = queryset.filter(course_assignment__lecturer=self.request.user)
+            else:
+                queryset = queryset.filter(course_assignment__lecturer=self.request.user)
+        
+        # Filter by student's enrolled courses for students
+        elif hasattr(self.request.user, 'role') and self.request.user.role == 'student':
+            enrolled_assignments = Enrollment.objects.filter(
+                student=self.request.user,
+                status='enrolled'
+            ).values_list('course_assignment', flat=True)
+            queryset = queryset.filter(course_assignment__in=enrolled_assignments)
+        
+        return queryset.select_related('course_assignment__course', 'course_assignment__lecturer', 'room', 'created_by')
+    
+    def perform_create(self, serializer):
+        # Only lecturers and admins can create sessions
+        if not hasattr(self.request.user, 'role') or self.request.user.role not in ['lecturer', 'admin']:
+            raise permissions.PermissionDenied("Only lecturers and admins can create sessions")
+        
+        # For lecturers, ensure they can only create sessions for their assigned courses
+        if self.request.user.role == 'lecturer':
+            course_assignment_id = serializer.validated_data.get('course_assignment_id')
+            if not CourseAssignment.objects.filter(
+                id=course_assignment_id,
+                lecturer=self.request.user,
+                is_active=True
+            ).exists():
+                raise permissions.PermissionDenied("You can only create sessions for courses assigned to you")
+        
+        # Check for conflicts before creating
+        session_data = serializer.validated_data
+        temp_session = ClassSession(**session_data)
+        conflicts = temp_session.check_conflicts()
+        
+        if conflicts:
+            from rest_framework import serializers as drf_serializers
+            conflict_messages = [conflict['message'] for conflict in conflicts]
+            raise drf_serializers.ValidationError({
+                'conflicts': conflict_messages,
+                'details': conflicts
+            })
+        
+        # Create the session
+        session = serializer.save(created_by=self.request.user)
+        
+        # Create notifications for enrolled students
+        enrolled_students = User.objects.filter(
+            enrollments__course_assignment=session.course_assignment,
+            enrollments__status='enrolled'
+        ).distinct()
+        
+        for student in enrolled_students:
+            Notification.objects.create(
+                    recipient=student,
+                    sender=self.request.user,
+                    notification_type='class_scheduled',
+                    title=f'New Class: {session.course_assignment.course.code}',
+                    message=f'A new class "{session.title}" has been scheduled for {session.scheduled_date} at {session.start_time} in {session.effective_location}.',
+                    related_class_session=session
+                )
+        
+        # Create recurring sessions if specified
+        if session.is_recurring and session.recurrence_pattern != 'none':
+            self.create_recurring_sessions(session)
+    
+    def create_recurring_sessions(self, parent_session):
+        """Create recurring sessions based on the parent session"""
         try:
-            notification = Notification.objects.get(id=pk, recipient=request.user)
-            notification.mark_as_read()
-            return Response({'message': 'Notification marked as read'})
-        except Notification.DoesNotExist:
-            return Response(
-                {'error': 'Notification not found'},
-                status=status.HTTP_404_NOT_FOUND
+            from dateutil.relativedelta import relativedelta
+        except ImportError:
+            # Fallback if dateutil is not installed
+            from datetime import timedelta as relativedelta
+        
+        current_date = parent_session.scheduled_date
+        end_date = parent_session.recurrence_end_date
+        
+        # Determine the increment based on recurrence pattern
+        if parent_session.recurrence_pattern == 'daily':
+            increment = timedelta(days=1)
+        elif parent_session.recurrence_pattern == 'weekly':
+            increment = timedelta(weeks=1)
+        elif parent_session.recurrence_pattern == 'biweekly':
+            increment = timedelta(weeks=2)
+        elif parent_session.recurrence_pattern == 'monthly':
+            try:
+                increment = relativedelta(months=1)
+            except:
+                increment = timedelta(days=30)  # Fallback
+        else:
+            return
+        
+        created_sessions = []
+        if isinstance(increment, timedelta):
+            current_date += increment
+        else:
+            current_date = current_date + increment
+        
+        while current_date <= end_date:
+            # Create a copy of the parent session
+            recurring_session = ClassSession(
+                course_assignment=parent_session.course_assignment,
+                title=parent_session.title,
+                description=parent_session.description,
+                class_type=parent_session.class_type,
+                scheduled_date=current_date,
+                start_time=parent_session.start_time,
+                end_time=parent_session.end_time,
+                timezone=parent_session.timezone,
+                room=parent_session.room,
+                custom_location=parent_session.custom_location,
+                meeting_link=parent_session.meeting_link,
+                meeting_id=parent_session.meeting_id,
+                meeting_passcode=parent_session.meeting_passcode,
+                attendance_window_start=parent_session.attendance_window_start,
+                attendance_window_end=parent_session.attendance_window_end,
+                attendance_required=parent_session.attendance_required,
+                attendance_method=parent_session.attendance_method,
+                is_recurring=False,  # Individual sessions are not recurring
+                parent_session=parent_session,
+                max_capacity=parent_session.max_capacity,
+                created_by=parent_session.created_by
             )
+            
+            # Check for conflicts for this specific date
+            conflicts = recurring_session.check_conflicts()
+            if not conflicts:  # Only create if no conflicts
+                recurring_session.save()
+                created_sessions.append(recurring_session)
+            
+            if isinstance(increment, timedelta):
+                current_date += increment
+            else:
+                current_date = current_date + increment
+        
+        return created_sessions
 
-# Dashboard Views
-class LecturerDashboardView(APIView):
+class ClassSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ClassSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
     
-    def get(self, request):
-        if not request.user.is_lecturer:
-            return Response(
-                {'error': 'Only lecturers can access this dashboard'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+    def get_queryset(self):
+        queryset = ClassSession.objects.filter(is_active=True)
         
-        # Get lecturer's course assignments
-        total_assignments = CourseAssignment.objects.filter(lecturer=request.user).count()
-        active_assignments = CourseAssignment.objects.filter(lecturer=request.user, is_active=True).count()
+        # Filter by lecturer for lecturers
+        if hasattr(self.request.user, 'role') and self.request.user.role == 'lecturer':
+            queryset = queryset.filter(course_assignment__lecturer=self.request.user)
         
-        # Get total students enrolled in lecturer's courses
-        total_students = Enrollment.objects.filter(
-            course_assignment__lecturer=request.user,
-            status='approved'
-        ).values('student').distinct().count()
-        
-        # Get classes for today
-        today = timezone.now().date()
-        total_classes_today = ClassSession.objects.filter(
-            course_assignment__lecturer=request.user,
-            scheduled_date=today,
-            is_active=True
-        ).count()
-        
-        # Get upcoming classes
-        upcoming_classes = ClassSession.objects.filter(
-            course_assignment__lecturer=request.user,
-            scheduled_date__gte=today,
-            is_active=True
-        ).order_by('scheduled_date', 'start_time')[:5]
-        
-        # Get recent attendances from lecturer's classes
-        from courses.models import ClassAttendance
-        recent_attendances = ClassAttendance.objects.filter(
-            class_session__course_assignment__lecturer=request.user
-        ).order_by('-marked_at')[:10]
-        
-        return Response({
-            'total_assignments': total_assignments,
-            'active_assignments': active_assignments,
-            'total_students': total_students,
-            'total_classes_today': total_classes_today,
-            'upcoming_classes': ClassSessionSerializer(upcoming_classes, many=True).data,
-            'recent_attendances': ClassAttendanceSerializer(recent_attendances, many=True).data,
-        })
-
-class StudentDashboardView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+        return queryset.select_related('course_assignment__course', 'course_assignment__lecturer', 'room')
     
-    def get(self, request):
-        if not request.user.is_student:
-            return Response(
-                {'error': 'Only students can access this dashboard'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+    def perform_update(self, serializer):
+        # Only the creator or admin can update
+        session = self.get_object()
+        if (self.request.user != session.created_by and 
+            (not hasattr(self.request.user, 'role') or self.request.user.role != 'admin')):
+            raise permissions.PermissionDenied("You can only update sessions you created")
         
-        # Get student's enrollments
-        enrollments = Enrollment.objects.filter(student=request.user)
-        approved_enrollments = enrollments.filter(status='approved')
+        # Check for conflicts before updating
+        session_data = serializer.validated_data
+        temp_session = ClassSession(**session_data)
+        temp_session.id = session.id
+        conflicts = temp_session.check_conflicts()
         
-        # Get upcoming classes for enrolled courses
-        upcoming_classes = ClassSession.objects.filter(
-            course_assignment__in=approved_enrollments.values_list('course_assignment', flat=True),
-            scheduled_date__gte=timezone.now().date(),
-            is_active=True
-        ).order_by('scheduled_date', 'start_time')[:5]
+        if conflicts:
+            from rest_framework import serializers as drf_serializers
+            conflict_messages = [conflict['message'] for conflict in conflicts]
+            raise drf_serializers.ValidationError({
+                'conflicts': conflict_messages,
+                'details': conflicts
+            })
         
-        # Get classes for today
-        today = timezone.now().date()
-        classes_today = ClassSession.objects.filter(
-            course_assignment__in=approved_enrollments.values_list('course_assignment', flat=True),
-            scheduled_date=today,
-            is_active=True
-        ).count()
-        
-        # Calculate attendance rate
-        from courses.models import ClassAttendance
-        total_past_sessions = ClassSession.objects.filter(
-            course_assignment__in=approved_enrollments.values_list('course_assignment', flat=True),
-            scheduled_date__lt=today,
-            is_active=True
-        ).count()
-        
-        attended_sessions = ClassAttendance.objects.filter(
-            student=request.user,
-            status='present',
-            class_session__scheduled_date__lt=today
-        ).count()
-        
-        attendance_rate = (attended_sessions / total_past_sessions * 100) if total_past_sessions > 0 else 0
-        
-        # Get recent notifications
-        recent_notifications = Notification.objects.filter(
-            recipient=request.user
-        ).order_by('-created_at')[:5]
-        
-        return Response({
-            'enrolled_courses': approved_enrollments.count(),
-            'classes_today': classes_today,
-            'attendance_rate': round(attendance_rate, 1),
-            'upcoming_classes': ClassSessionSerializer(upcoming_classes, many=True).data,
-            'recent_notifications': NotificationSerializer(recent_notifications, many=True).data,
-        })
-
-class AdminDashboardView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+        serializer.save()
     
-    def get(self, request):
-        if not request.user.is_admin:
-            return Response(
-                {'error': 'Only admins can access this dashboard'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+    def perform_destroy(self, instance):
+        # Only the creator or admin can delete
+        if (self.request.user != instance.created_by and 
+            (not hasattr(self.request.user, 'role') or self.request.user.role != 'admin')):
+            raise permissions.PermissionDenied("You can only delete sessions you created")
         
-        # Get system-wide statistics
-        total_users = User.objects.count()
-        total_courses = Course.objects.filter(is_active=True).count()
-        total_departments = Department.objects.filter(is_active=True).count()
+        # If this is a parent session with recurring sessions, ask for confirmation
+        if instance.is_recurring and instance.recurring_sessions.exists():
+            delete_all = self.request.query_params.get('delete_all', 'false').lower() == 'true'
+            if delete_all:
+                # Delete all recurring sessions
+                instance.recurring_sessions.update(is_active=False)
+        
+        instance.is_active = False
+        instance.save()
+
+# Additional helper views for session management
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def available_courses_for_assignment(request):
+    """Get courses that are available for assignment (not assigned or can have multiple lecturers)"""
+    try:
+        user = request.user
+        
+        # Only admins can see all available courses
+        if not (hasattr(user, 'role') and user.role == 'admin'):
+            return Response({'error': 'Only admins can view available courses'}, status=403)
+        
+        # Get courses that either have no assignment or can have multiple lecturers
+        courses = Course.objects.filter(is_active=True)
+        
+        available_courses = []
+        for course in courses:
+            assignments = CourseAssignment.objects.filter(course=course, is_active=True)
+            if assignments.count() == 0:  # No lecturer assigned
+                available_courses.append({
+                    'id': course.id,
+                    'code': course.code,
+                    'title': course.title,
+                    'department': course.department.name if course.department else 'N/A',
+                    'level': course.level,
+                    'credit_units': course.credit_units,
+                    'assigned_lecturers': 0
+                })
+            else:  # Has lecturers but might accept more
+                lecturer_names = [assignment.lecturer.full_name for assignment in assignments]
+                available_courses.append({
+                    'id': course.id,
+                    'code': course.code,
+                    'title': course.title,
+                    'department': course.department.name if course.department else 'N/A',
+                    'level': course.level,
+                    'credit_units': course.credit_units,
+                    'assigned_lecturers': assignments.count(),
+                    'lecturers': lecturer_names
+                })
+        
+        return Response(available_courses)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def lecturer_workload(request):
+    """Get lecturer workload statistics"""
+    try:
+        user = request.user
+        
+        # Only admins can see all lecturer workloads
+        if not (hasattr(user, 'role') and user.role == 'admin'):
+            return Response({'error': 'Only admins can view lecturer workloads'}, status=403)
+        
+        lecturers = User.objects.filter(role='lecturer', is_active=True)
+        workload_data = []
+        
+        for lecturer in lecturers:
+            assignments = CourseAssignment.objects.filter(lecturer=lecturer, is_active=True)
+            total_courses = assignments.count()
+            total_credit_units = sum(assignment.course.credit_units for assignment in assignments)
+            
+            # Count sessions this week
+            from datetime import datetime, timedelta
+            today = datetime.now().date()
+            week_start = today - timedelta(days=today.weekday())
+            week_end = week_start + timedelta(days=6)
+            
+            weekly_sessions = ClassSession.objects.filter(
+                course_assignment__lecturer=lecturer,
+                scheduled_date__range=[week_start, week_end],
+                is_active=True,
+                is_cancelled=False
+            ).count()
+            
+            workload_data.append({
+                'lecturer_id': lecturer.id,
+                'lecturer_name': lecturer.full_name,
+                'lecturer_email': lecturer.email,
+                'total_courses': total_courses,
+                'total_credit_units': total_credit_units,
+                'weekly_sessions': weekly_sessions,
+                'courses': [
+                    {
+                        'code': assignment.course.code,
+                        'title': assignment.course.title,
+                        'credit_units': assignment.course.credit_units
+                    }
+                    for assignment in assignments
+                ]
+            })
+        
+        # Sort by total workload (credit units)
+        workload_data.sort(key=lambda x: x['total_credit_units'], reverse=True)
+        
+        return Response(workload_data)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def my_enrollments(request):
+    """Get current user's enrollments"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'student'):
+            return Response({'error': 'Only students can view enrollments'}, status=403)
+        
+        enrollments = Enrollment.objects.filter(student=user).select_related(
+            'course_assignment__course',
+            'course_assignment__lecturer'
+        )
+        
+        serializer = EnrollmentSerializer(enrollments, many=True)
+        return Response(serializer.data)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def mark_notifications_read(request):
+    """Mark notifications as read"""
+    try:
+        user = request.user
+        notification_ids = request.data.get('notification_ids', [])
+        
+        if notification_ids:
+            Notification.objects.filter(
+                recipient=user,
+                id__in=notification_ids
+            ).update(is_read=True)
+        else:
+            # Mark all as read
+            Notification.objects.filter(recipient=user).update(is_read=True)
+        
+        return Response({'message': 'Notifications marked as read'})
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def enrollment_statistics(request):
+    """Get enrollment statistics for analytics"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'admin'):
+            return Response({'error': 'Only admins can view enrollment statistics'}, status=403)
+        
+        # Total enrollments
         total_enrollments = Enrollment.objects.count()
         
-        # Get recent enrollments (last 10)
-        recent_enrollments = Enrollment.objects.select_related(
-            'student', 'course_assignment__course', 'course_assignment__lecturer'
-        ).order_by('-requested_at')[:10]
+        # Enrollments by status
+        enrollment_by_status = {}
+        for status, _ in Enrollment.STATUS_CHOICES:
+            count = Enrollment.objects.filter(status=status).count()
+            enrollment_by_status[status] = count
         
-        # System stats
-        pending_enrollments = Enrollment.objects.filter(status='pending').count()
-        total_sessions = ClassSession.objects.filter(is_active=True).count()
-        total_assignments = CourseAssignment.objects.filter(is_active=True).count()
+        # Enrollments by department
+        from django.db.models import Count
+        enrollments_by_dept = (
+            Enrollment.objects
+            .select_related('course_assignment__course__department')
+            .values('course_assignment__course__department__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
         
         return Response({
-            'total_users': total_users,
-            'total_courses': total_courses,
-            'total_departments': total_departments,
             'total_enrollments': total_enrollments,
-            'recent_enrollments': EnrollmentSerializer(recent_enrollments, many=True).data,
-            'system_stats': {
-                'pending_enrollments': pending_enrollments,
+            'by_status': enrollment_by_status,
+            'by_department': list(enrollments_by_dept),
+            'recent_enrollments': Enrollment.objects.order_by('-enrolled_at')[:10].count()
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def course_popularity(request):
+    """Get course popularity statistics"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'admin'):
+            return Response({'error': 'Only admins can view course popularity'}, status=403)
+        
+        from django.db.models import Count
+        
+        popular_courses = (
+            Course.objects
+            .filter(is_active=True)
+            .annotate(
+                enrollment_count=Count('courseassignment__enrollments'),
+                assignment_count=Count('courseassignment')
+            )
+            .order_by('-enrollment_count')[:10]
+        )
+        
+        popularity_data = []
+        for course in popular_courses:
+            popularity_data.append({
+                'course_code': course.code,
+                'course_title': course.title,
+                'department': course.department.name if course.department else 'N/A',
+                'level': course.level,
+                'enrollment_count': course.enrollment_count,
+                'assignment_count': course.assignment_count
+            })
+        
+        return Response(popularity_data)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def lecturer_workload_analytics(request):
+    """Get detailed lecturer workload analytics"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'admin'):
+            return Response({'error': 'Only admins can view lecturer analytics'}, status=403)
+        
+        from django.db.models import Avg, Count, Sum
+        
+        # Overall statistics
+        total_lecturers = User.objects.filter(role='lecturer', is_active=True).count()
+        
+        # Average workload
+        avg_courses = (
+            CourseAssignment.objects
+            .filter(is_active=True)
+            .values('lecturer')
+            .annotate(course_count=Count('course'))
+            .aggregate(avg_courses=Avg('course_count'))
+        )
+        
+        # Lecturer distribution
+        workload_distribution = []
+        lecturers = User.objects.filter(role='lecturer', is_active=True)
+        
+        for lecturer in lecturers:
+            assignments = CourseAssignment.objects.filter(lecturer=lecturer, is_active=True)
+            total_courses = assignments.count()
+            total_sessions = ClassSession.objects.filter(
+                course_assignment__lecturer=lecturer,
+                is_active=True
+            ).count()
+            
+            workload_distribution.append({
+                'lecturer_name': lecturer.full_name,
+                'course_count': total_courses,
+                'session_count': total_sessions,
+                'workload_score': total_courses * 3 + total_sessions  # Simple scoring
+            })
+        
+        # Sort by workload score
+        workload_distribution.sort(key=lambda x: x['workload_score'], reverse=True)
+        
+        return Response({
+            'total_lecturers': total_lecturers,
+            'average_courses_per_lecturer': avg_courses['avg_courses'] or 0,
+            'workload_distribution': workload_distribution,
+            'high_workload_lecturers': [
+                l for l in workload_distribution if l['workload_score'] > 15
+            ],
+            'low_workload_lecturers': [
+                l for l in workload_distribution if l['workload_score'] < 5
+            ]
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def check_session_conflicts(request):
+    """Check for conflicts before creating/updating a session"""
+    try:
+        # Don't validate using serializer, just extract the needed fields for conflict check
+        data = request.data
+        
+        # Extract required fields for conflict checking
+        course_assignment_id = data.get('course_assignment_id')
+        scheduled_date = data.get('scheduled_date')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        room_id = data.get('room_id')
+        session_id = data.get('id')  # For updates
+        
+        if not all([course_assignment_id, scheduled_date, start_time, end_time]):
+            return Response({'error': 'Missing required fields for conflict check'}, status=400)
+        
+        # Get the course assignment
+        try:
+            course_assignment = CourseAssignment.objects.get(id=course_assignment_id)
+        except CourseAssignment.DoesNotExist:
+            return Response({'error': 'Course assignment not found'}, status=404)
+        
+        # Create a minimal session object for conflict checking
+        temp_session = ClassSession(
+            course_assignment=course_assignment,
+            scheduled_date=scheduled_date,
+            start_time=start_time,
+            end_time=end_time,
+            room_id=room_id if room_id else None
+        )
+        
+        # Set session ID if updating
+        if session_id:
+            temp_session.id = session_id
+        
+        conflicts = temp_session.check_conflicts()
+        
+        return Response({
+            'has_conflicts': len(conflicts) > 0,
+            'conflicts': conflicts,
+            'can_proceed': len(conflicts) == 0
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def suggest_optimal_times(request):
+    """Suggest optimal time slots based on lecturer and student availability"""
+    course_assignment_id = request.query_params.get('course_assignment_id')
+    date = request.query_params.get('date')
+    duration = int(request.query_params.get('duration', 120))  # Duration in minutes
+    room_type = request.query_params.get('room_type', 'physical')
+    
+    if not all([course_assignment_id, date]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        assignment = CourseAssignment.objects.get(id=course_assignment_id)
+        lecturer = assignment.lecturer
+        course = assignment.course
+        
+        # Get lecturer's free times
+        lecturer_response = lecturer_free_times(request)
+        if lecturer_response.status_code != 200:
+            return lecturer_response
+        
+        lecturer_free_slots = lecturer_response.data['free_slots']
+        
+        # Check for student conflicts (same department and level)
+        student_conflicts = ClassSession.objects.filter(
+            course_assignment__course__department=course.department,
+            course_assignment__course__level=course.level,
+            scheduled_date=date,
+            is_active=True,
+            is_cancelled=False
+        ).order_by('start_time')
+        
+        # Find available rooms for each free slot
+        available_rooms = Room.objects.filter(
+            room_type=room_type,
+            is_available=True
+        )
+        
+        optimal_suggestions = []
+        
+        for free_slot in lecturer_free_slots:
+            if free_slot['duration_minutes'] >= duration:
+                start_time = datetime.strptime(free_slot['start_time'], '%H:%M').time()
+                end_time = (datetime.combine(datetime.today(), start_time) + 
+                           timedelta(minutes=duration)).time()
+                
+                # Check if this time conflicts with student classes
+                has_student_conflict = False
+                for student_session in student_conflicts:
+                    if (start_time < student_session.end_time and end_time > student_session.start_time):
+                        has_student_conflict = True
+                        break
+                
+                if not has_student_conflict:
+                    # Find available rooms for this time slot
+                    available_rooms_for_slot = []
+                    for room in available_rooms:
+                        room_conflicts = ClassSession.objects.filter(
+                            room=room,
+                            scheduled_date=date,
+                            is_active=True,
+                            is_cancelled=False
+                        )
+                        
+                        room_available = True
+                        for room_session in room_conflicts:
+                            if (start_time < room_session.end_time and end_time > room_session.start_time):
+                                room_available = False
+                                break
+                        
+                        if room_available:
+                            available_rooms_for_slot.append({
+                                'id': room.id,
+                                'name': room.name,
+                                'code': room.code,
+                                'capacity': room.capacity,
+                                'room_type': room.room_type
+                            })
+                    
+                    if available_rooms_for_slot:
+                        optimal_suggestions.append({
+                            'start_time': start_time.strftime('%H:%M'),
+                            'end_time': end_time.strftime('%H:%M'),
+                            'duration_minutes': duration,
+                            'available_rooms': available_rooms_for_slot,
+                            'score': len(available_rooms_for_slot)  # More rooms = higher score
+                        })
+        
+        # Sort by score (number of available rooms)
+        optimal_suggestions.sort(key=lambda x: x['score'], reverse=True)
+        
+        return Response({
+            'date': date,
+            'course': {
+                'code': course.code,
+                'title': course.title
+            },
+            'lecturer': {
+                'name': lecturer.full_name
+            },
+            'optimal_suggestions': optimal_suggestions[:5]  # Top 5 suggestions
+        })
+        
+    except CourseAssignment.DoesNotExist:
+        return Response({'error': 'Course assignment not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=400) 
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def lecturer_attendance_history(request):
+    """Get attendance history for lecturer's courses"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'lecturer'):
+            return Response({'error': 'Only lecturers can view attendance history'}, status=403)
+        
+        # Get filter parameters
+        course_id = request.query_params.get('course')
+        status = request.query_params.get('status')
+        date = request.query_params.get('date')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 50))
+        
+        # Get attendance records for lecturer's courses
+        attendance_query = ClassAttendance.objects.filter(
+            class_session__course_assignment__lecturer=user,
+            class_session__is_active=True
+        ).select_related(
+            'student',
+            'class_session',
+            'class_session__course_assignment',
+            'class_session__course_assignment__course'
+        ).order_by('-class_session__scheduled_date', '-marked_at')
+        
+        # Apply filters
+        if course_id:
+            attendance_query = attendance_query.filter(class_session__course_assignment__course_id=course_id)
+        if status:
+            attendance_query = attendance_query.filter(status=status)
+        if date:
+            attendance_query = attendance_query.filter(class_session__scheduled_date=date)
+        
+        # Pagination
+        total_count = attendance_query.count()
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        attendance_records = attendance_query[start_idx:end_idx]
+        
+        # Serialize data
+        serialized_records = []
+        for record in attendance_records:
+            serialized_records.append({
+                'id': record.id,
+                'student': {
+                    'id': record.student.id,
+                    'full_name': record.student.full_name,
+                    'email': record.student.email,
+                    'student_id': getattr(record.student, 'student_id', 'N/A')
+                },
+                'class_session': {
+                    'id': record.class_session.id,
+                    'title': record.class_session.title,
+                    'scheduled_date': record.class_session.scheduled_date.isoformat(),
+                    'start_time': record.class_session.start_time.strftime('%H:%M'),
+                    'end_time': record.class_session.end_time.strftime('%H:%M'),
+                    'course_assignment': {
+                        'course': {
+                            'code': record.class_session.course_assignment.course.code,
+                            'title': record.class_session.course_assignment.course.title
+                        }
+                    }
+                },
+                'status': record.status,
+                'marked_at': record.marked_at.isoformat(),
+                'face_verified': record.face_verified,
+                'location': record.location or ''
+            })
+        
+        return Response({
+            'results': serialized_records,
+            'count': total_count,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total_count + page_size - 1) // page_size
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def lecturer_attendance_stats(request):
+    """Get overall attendance statistics for lecturer"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'lecturer'):
+            return Response({'error': 'Only lecturers can view attendance stats'}, status=403)
+        
+        # Get date range
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        course_id = request.query_params.get('course')
+        
+        # Base query for lecturer's sessions
+        sessions_query = ClassSession.objects.filter(
+            course_assignment__lecturer=user,
+            is_active=True
+        )
+        
+        if start_date:
+            sessions_query = sessions_query.filter(scheduled_date__gte=start_date)
+        if end_date:
+            sessions_query = sessions_query.filter(scheduled_date__lte=end_date)
+        if course_id:
+            sessions_query = sessions_query.filter(course_assignment__course_id=course_id)
+        
+        # Get attendance records for these sessions
+        attendance_query = ClassAttendance.objects.filter(
+            class_session__in=sessions_query
+        )
+        
+        # Calculate statistics
+        total_sessions = sessions_query.count()
+        total_attendance_records = attendance_query.count()
+        
+        # Count by status
+        present_count = attendance_query.filter(status='present').count()
+        absent_count = attendance_query.filter(status='absent').count()
+        late_count = attendance_query.filter(status='late').count()
+        excused_count = attendance_query.filter(status='excused').count()
+        
+        # Calculate attendance rate
+        total_expected = present_count + absent_count + late_count + excused_count
+        overall_attendance_rate = (present_count / total_expected * 100) if total_expected > 0 else 0
+        
+        # Get unique students count
+        total_students = attendance_query.values('student').distinct().count()
+        
+        return Response({
+            'total_sessions': total_sessions,
+            'total_students': total_students,
+            'total_attendance_records': total_attendance_records,
+            'overall_attendance_rate': overall_attendance_rate,
+            'present_count': present_count,
+            'absent_count': absent_count,
+            'late_count': late_count,
+            'excused_count': excused_count
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def course_attendance_stats(request):
+    """Get attendance statistics by course for lecturer"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'lecturer'):
+            return Response({'error': 'Only lecturers can view course stats'}, status=403)
+        
+        # Get lecturer's course assignments
+        assignments = CourseAssignment.objects.filter(
+            lecturer=user,
+            is_active=True
+        ).select_related('course')
+        
+        course_stats = []
+        for assignment in assignments:
+            # Get sessions for this course
+            sessions = ClassSession.objects.filter(
+                course_assignment=assignment,
+            is_active=True
+            )
+            
+            # Get attendance records for these sessions
+            attendance_records = ClassAttendance.objects.filter(
+                class_session__in=sessions
+            )
+            
+            present_count = attendance_records.filter(status='present').count()
+            absent_count = attendance_records.filter(status='absent').count()
+            late_count = attendance_records.filter(status='late').count()
+            
+            total_records = attendance_records.count()
+            attendance_rate = (present_count / total_records * 100) if total_records > 0 else 0
+            
+            course_stats.append({
+                'course_id': assignment.course.id,
+                'course_code': assignment.course.code,
+                'course_title': assignment.course.title,
+                'sessions_count': sessions.count(),
+                'students_count': attendance_records.values('student').distinct().count(),
+                'attendance_rate': attendance_rate,
+                'present_count': present_count,
+                'absent_count': absent_count,
+                'late_count': late_count
+            })
+        
+        return Response(course_stats)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400) 
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def student_attendance_stats(request):
+    """Get attendance statistics by student for lecturer"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'lecturer'):
+            return Response({'error': 'Only lecturers can view student stats'}, status=403)
+        
+        # Get lecturer's course assignments
+        assignments = CourseAssignment.objects.filter(
+            lecturer=user,
+            is_active=True
+        )
+        
+        # Get all students enrolled in lecturer's courses
+        enrollments = Enrollment.objects.filter(
+            course_assignment__in=assignments,
+            status='enrolled'
+        ).select_related('student')
+        
+        student_stats = []
+        for enrollment in enrollments:
+            student = enrollment.student
+            
+            # Get attendance records for this student in lecturer's courses
+            attendance_records = ClassAttendance.objects.filter(
+                student=student,
+                class_session__course_assignment__in=assignments
+            )
+            
+            present_count = attendance_records.filter(status='present').count()
+            absent_count = attendance_records.filter(status='absent').count()
+            late_count = attendance_records.filter(status='late').count()
+            
+            total_sessions = attendance_records.count()
+            attendance_rate = (present_count / total_sessions * 100) if total_sessions > 0 else 0
+            
+            student_stats.append({
+                'student_id': student.id,
+                'student_name': student.full_name,
+                'student_number': getattr(student, 'student_id', 'N/A'),
                 'total_sessions': total_sessions,
-                'total_assignments': total_assignments,
+                'present_count': present_count,
+                'absent_count': absent_count,
+                'late_count': late_count,
+                'attendance_rate': attendance_rate
+            })
+        
+        # Sort by attendance rate (lowest first to identify at-risk students)
+        student_stats.sort(key=lambda x: x['attendance_rate'])
+        
+        return Response(student_stats)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def daily_attendance_stats(request):
+    """Get daily attendance statistics for lecturer"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role == 'lecturer'):
+            return Response({'error': 'Only lecturers can view daily stats'}, status=403)
+        
+        # Get date range
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        # Get lecturer's sessions
+        sessions_query = ClassSession.objects.filter(
+            course_assignment__lecturer=user,
+            is_active=True
+        )
+        
+        if start_date:
+            sessions_query = sessions_query.filter(scheduled_date__gte=start_date)
+        if end_date:
+            sessions_query = sessions_query.filter(scheduled_date__lte=end_date)
+        
+        # Group by date
+        from django.db.models import Count
+        daily_stats = []
+        
+        # Get unique dates
+        dates = sessions_query.values_list('scheduled_date', flat=True).distinct().order_by('scheduled_date')
+        
+        for date in dates:
+            day_sessions = sessions_query.filter(scheduled_date=date)
+            
+            # Get attendance records for this day
+            attendance_records = ClassAttendance.objects.filter(
+                class_session__in=day_sessions
+            )
+            
+            present_count = attendance_records.filter(status='present').count()
+            total_expected = attendance_records.count()
+            attendance_rate = (present_count / total_expected * 100) if total_expected > 0 else 0
+            
+            daily_stats.append({
+                'date': date.isoformat(),
+                'total_sessions': day_sessions.count(),
+                'attendance_rate': attendance_rate,
+                'present_count': present_count,
+                'total_expected': total_expected
+            })
+        
+        return Response(daily_stats)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400) 
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def import_department_students(request):
+    """Import all students from a department into a course"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role in ['lecturer', 'admin']):
+            return Response({'error': 'Only lecturers and admins can import students'}, status=403)
+        
+        course_assignment_id = request.data.get('course_assignment_id')
+        department_id = request.data.get('department_id')
+        status = request.data.get('status', 'enrolled')
+        
+        if not all([course_assignment_id, department_id]):
+            return Response({'error': 'course_assignment_id and department_id are required'}, status=400)
+        
+        # Get the course assignment
+        try:
+            assignment = CourseAssignment.objects.get(id=course_assignment_id)
+        except CourseAssignment.DoesNotExist:
+            return Response({'error': 'Course assignment not found'}, status=404)
+        
+        # Check if user has permission to manage this course
+        if user.role == 'lecturer' and assignment.lecturer != user:
+            return Response({'error': 'You can only import students to your own courses'}, status=403)
+        
+        # Get all students from the department with the same level as the course
+        from accounts.models import User
+        students = User.objects.filter(
+            role='student',
+            department_id=department_id,
+            level=assignment.course.level,
+            is_active=True
+        )
+        
+        imported_count = 0
+        existing_count = 0
+        
+        for student in students:
+            # Check if student is already enrolled
+            existing_enrollment = Enrollment.objects.filter(
+                student=student,
+                course_assignment=assignment
+            ).first()
+            
+            if not existing_enrollment:
+                enrollment = Enrollment.objects.create(
+                    student=student,
+                    course_assignment=assignment,
+                    status=status,
+                    enrolled_by=user
+                )
+                imported_count += 1
+                
+                # Create notification for the enrolled student
+                Notification.objects.create(
+                    recipient=student,
+                    sender=user,
+                    notification_type='enrollment_approved',
+                    title=f'Enrolled in {assignment.course.code}',
+                    message=f'You have been enrolled in {assignment.course.code} - {assignment.course.title} by {user.full_name}.',
+                    related_enrollment=enrollment
+                )
+            else:
+                existing_count += 1
+        
+        return Response({
+            'imported_count': imported_count,
+            'existing_count': existing_count,
+            'total_students': students.count(),
+            'message': f'Successfully imported {imported_count} students. {existing_count} were already enrolled.'
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400) 
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def deallocate_department_students(request):
+    """Remove all students from a specific department from a course"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role in ['lecturer', 'admin']):
+            return Response({'error': 'Only lecturers and admins can deallocate students'}, status=403)
+        
+        course_assignment_id = request.data.get('course_assignment_id')
+        department_id = request.data.get('department_id')
+        
+        if not all([course_assignment_id, department_id]):
+            return Response({'error': 'course_assignment_id and department_id are required'}, status=400)
+        
+        # Get the course assignment
+        try:
+            assignment = CourseAssignment.objects.get(id=course_assignment_id)
+        except CourseAssignment.DoesNotExist:
+            return Response({'error': 'Course assignment not found'}, status=404)
+        
+        # Check if user has permission to manage this course
+        if user.role == 'lecturer' and assignment.lecturer != user:
+            return Response({'error': 'You can only deallocate students from your own courses'}, status=403)
+        
+        # Get all students from the department enrolled in this course
+        from accounts.models import User
+        department_students = User.objects.filter(
+            role='student',
+            department_id=department_id,
+            is_active=True
+        )
+        
+        # Remove enrollments for these students
+        removed_enrollments = Enrollment.objects.filter(
+            student__in=department_students,
+            course_assignment=assignment
+        )
+        
+        removed_count = removed_enrollments.count()
+        
+        # Create notifications for deallocated students
+        for enrollment in removed_enrollments:
+            Notification.objects.create(
+                recipient=enrollment.student,
+                sender=user,
+                notification_type='enrollment_rejected',
+                title=f'Removed from {assignment.course.code}',
+                message=f'You have been removed from {assignment.course.code} - {assignment.course.title} by {user.full_name}.',
+                related_enrollment=enrollment
+            )
+        
+        # Delete the enrollments
+        removed_enrollments.delete()
+        
+        return Response({
+            'removed_count': removed_count,
+            'message': f'Successfully removed {removed_count} students from {assignment.course.code}.'
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_enrolled_departments(request):
+    """Get list of departments that have students enrolled in a course"""
+    try:
+        user = request.user
+        
+        if not (hasattr(user, 'role') and user.role in ['lecturer', 'admin']):
+            return Response({'error': 'Only lecturers and admins can view enrolled departments'}, status=403)
+        
+        course_assignment_id = request.query_params.get('course_assignment_id')
+        
+        if not course_assignment_id:
+            return Response({'error': 'course_assignment_id is required'}, status=400)
+        
+        # Get the course assignment
+        try:
+            assignment = CourseAssignment.objects.get(id=course_assignment_id)
+        except CourseAssignment.DoesNotExist:
+            return Response({'error': 'Course assignment not found'}, status=404)
+        
+        # Check if user has permission to view this course
+        if user.role == 'lecturer' and assignment.lecturer != user:
+            return Response({'error': 'You can only view your own courses'}, status=403)
+        
+        # Get departments with enrolled students
+        from django.db.models import Count
+        enrolled_departments = (
+            Department.objects
+            .filter(
+                users__enrollments__course_assignment=assignment,
+                users__enrollments__status='enrolled',
+                users__role='student'
+            )
+            .annotate(student_count=Count('users__enrollments'))
+            .distinct()
+        )
+        
+        department_data = []
+        for dept in enrolled_departments:
+            department_data.append({
+                'id': dept.id,
+                'name': dept.name,
+                'code': dept.code,
+                'student_count': dept.student_count,
+                'college': dept.college.name if dept.college else 'N/A'
+            })
+        
+        return Response(department_data)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)
+
+# Lecturer Management Views
+class LecturerListView(generics.ListAPIView):
+    """List all lecturers for course assignment"""
+    serializer_class = UserBasicSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['full_name', 'email', 'lecturer_id']
+    
+    def get_queryset(self):
+        # Only return active lecturers
+        return User.objects.filter(role='lecturer', is_active=True).order_by('full_name') 
+
+# Student Attendance Views
+class StudentAttendanceCreateView(generics.CreateAPIView):
+    """Allow students to mark their own attendance"""
+    serializer_class = ClassAttendanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        
+        # Only students can mark attendance
+        if not (hasattr(user, 'role') and user.role == 'student'):
+            raise permissions.PermissionDenied("Only students can mark attendance")
+        
+        class_session_id = self.request.data.get('class_session_id')
+        if not class_session_id:
+            raise ValidationError("class_session_id is required")
+        
+        try:
+            class_session = ClassSession.objects.get(id=class_session_id, is_active=True)
+        except ClassSession.DoesNotExist:
+            raise ValidationError("Invalid or inactive class session")
+        
+        # Check if student is enrolled in the course
+        enrollment = Enrollment.objects.filter(
+            student=user,
+            course_assignment=class_session.course_assignment,
+            status='enrolled'
+        ).first()
+        
+        if not enrollment:
+            raise ValidationError("You are not enrolled in this course")
+        
+        # Check attendance window
+        now = timezone.now()
+        session_date = class_session.scheduled_date
+        
+        # Create datetime objects for comparison
+        window_start = timezone.make_aware(
+            timezone.datetime.combine(session_date, class_session.attendance_window_start)
+        )
+        window_end = timezone.make_aware(
+            timezone.datetime.combine(session_date, class_session.attendance_window_end)
+        )
+        
+        if now < window_start:
+            raise ValidationError("Attendance window has not opened yet")
+        
+        if now > window_end:
+            raise ValidationError("Attendance window has closed")
+        
+        # Check if student has already marked attendance
+        existing_attendance = ClassAttendance.objects.filter(
+            student=user,
+            class_session=class_session
+        ).first()
+        
+        if existing_attendance:
+            # Return detailed info about existing attendance instead of just raising error
+            from rest_framework.exceptions import ValidationError as DRFValidationError
+            from django.utils import timezone as tz
+            
+            time_marked = existing_attendance.marked_at.strftime("%H:%M:%S")
+            date_marked = existing_attendance.marked_at.strftime("%B %d, %Y")
+            
+            error_data = {
+                'error': 'Attendance already marked',
+                'error_type': 'already_marked',
+                'details': {
+                    'status': existing_attendance.status,
+                    'marked_at': existing_attendance.marked_at.isoformat(),
+                    'marked_time': time_marked,
+                    'marked_date': date_marked,
+                    'face_verified': existing_attendance.face_verified,
+                    'session_title': class_session.title,
+                    'course_code': class_session.course_assignment.course.code
+                },
+                'message': f'✅ You have already marked attendance for this session at {time_marked} on {date_marked}',
+                'icon': '✅',  # Check mark to indicate completion
+                'display_status': existing_attendance.get_status_display()
             }
-        }) 
+            
+            raise DRFValidationError(error_data)
+        
+        # Determine if student is late
+        session_start = timezone.make_aware(
+            timezone.datetime.combine(session_date, class_session.start_time)
+        )
+        
+        status = 'late' if now > session_start else 'present'
+        
+        # Handle captured image if provided
+        captured_image_data = self.request.data.get('captured_image')
+        
+        # Save attendance with calculated status
+        attendance = serializer.save(
+            student=user,
+            class_session=class_session,
+            status=status,
+            notes=self.request.data.get('notes', ''),
+            face_verified=self.request.data.get('face_verified', False)
+        )
+        
+        # Add success logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Attendance marked successfully: User {user.id} ({user.full_name}) - Session {class_session.id} - Status: {status}")
+        
+        # Save captured image if provided
+        if captured_image_data and self.request.data.get('face_verified', False):
+            try:
+                # Here you could save the image to a specific location if needed
+                # For now, we'll just log that face verification was used
+                attendance.notes += ' - Face verified'
+                attendance.save()
+                logger.info(f"Face verification completed for attendance {attendance.id}")
+            except Exception as e:
+                # Don't fail attendance marking if image saving fails
+                logger.warning(f"Failed to save face verification note: {str(e)}")
+                pass 

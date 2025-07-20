@@ -22,7 +22,13 @@ export default function FaceRegistrationPage() {
     if (!isAuthenticated) {
       router.push('/login')
     } else if (!isStudent) {
-      router.push('/dashboard')
+      // Non-students (lecturers/admins) should go to their appropriate pages
+      const userData = JSON.parse(localStorage.getItem('user') || '{}')
+      if (userData.role === 'lecturer') {
+        router.push('/my-courses')
+      } else {
+        router.push('/dashboard')
+      }
     }
   }, [isAuthenticated, isStudent, router])
 
@@ -64,7 +70,14 @@ export default function FaceRegistrationPage() {
       
       // Auto-redirect after 5 seconds
       setTimeout(() => {
-        router.push('/dashboard')
+        const userData = JSON.parse(localStorage.getItem('user') || '{}')
+        if (userData.role === 'student') {
+          router.push('/student-courses')
+        } else if (userData.role === 'lecturer') {
+          router.push('/my-courses')
+        } else {
+          router.push('/dashboard')
+        }
       }, 5000)
     } catch (error) {
       console.error('Error registering face:', error)
@@ -85,10 +98,19 @@ export default function FaceRegistrationPage() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  const userData = JSON.parse(localStorage.getItem('user') || '{}')
+                  if (userData.role === 'student') {
+                    router.push('/student-courses')
+                  } else if (userData.role === 'lecturer') {
+                    router.push('/my-courses')
+                  } else {
+                    router.push('/dashboard')
+                  }
+                }}
                 className="text-gray-600 hover:text-gray-900 font-medium"
               >
-                ← Back to Dashboard
+                ← Back to Home
               </button>
             </div>
             <div className="flex items-center">

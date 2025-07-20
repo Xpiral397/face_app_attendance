@@ -361,7 +361,7 @@ export default function EnrollmentManagementPage() {
       setError('')
       setSuccess('')
       
-      const response = await apiClient.post('/courses/assignments/', {
+      const response = await apiClient.post('/courses/course-assignments/', {
         lecturer_id: parseInt(assignmentData.lecturer_id),
         course_id: parseInt(assignmentData.course_id),
         academic_year: assignmentData.academic_year,

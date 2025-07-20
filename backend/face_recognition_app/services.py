@@ -162,46 +162,59 @@ class FaceRecognitionService:
                 'error': f'Error processing image: {str(e)}'
             }
     
-    def compare_faces(self, known_encoding: List[float], unknown_encoding: List[float]) -> Dict[str, any]:
+    def extract_face_encodings(self, image_array: np.ndarray) -> List[np.ndarray]:
         """
-        Compare two face encodings
+        Extract face encodings from image array
         
         Args:
-            known_encoding: Stored face encoding
-            unknown_encoding: New face encoding to compare
+            image_array: OpenCV image array (BGR format)
             
         Returns:
-            Dictionary with comparison results
+            List of face encodings as numpy arrays
         """
         try:
-            # Convert to numpy arrays
-            known_encoding_array = np.array(known_encoding)
-            unknown_encoding_array = np.array(unknown_encoding)
+            # Convert BGR to RGB (face_recognition expects RGB)
+            rgb_image = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
             
-            # Calculate distance
-            distance = face_recognition.face_distance([known_encoding_array], unknown_encoding_array)[0]
+            # Find face locations
+            face_locations = face_recognition.face_locations(rgb_image)
             
-            # Determine if faces match
-            is_match = distance <= self.settings.tolerance
+            if not face_locations:
+                return []
             
-            # Calculate confidence percentage
-            confidence = max(0, (1 - distance) * 100)
+            # Get face encodings
+            face_encodings = face_recognition.face_encodings(rgb_image, face_locations)
             
-            return {
-                'is_match': is_match,
-                'distance': float(distance),
-                'confidence': float(confidence),
-                'tolerance': self.settings.tolerance
-            }
+            return face_encodings
+            
+        except Exception as e:
+            logger.error(f"Error extracting face encodings: {str(e)}")
+            return []
+
+    def compare_faces(self, known_encoding: np.ndarray, unknown_encoding: np.ndarray, threshold: float = 0.6) -> float:
+        """
+        Compare two face encodings and return confidence score
+        
+        Args:
+            known_encoding: Known face encoding
+            unknown_encoding: Unknown face encoding to compare
+            threshold: Similarity threshold
+            
+        Returns:
+            Confidence score (higher is more similar)
+        """
+        try:
+            # Calculate face distance
+            face_distance = face_recognition.face_distance([known_encoding], unknown_encoding)[0]
+            
+            # Convert distance to confidence (1 - distance)
+            confidence = 1 - face_distance
+            
+            return confidence
             
         except Exception as e:
             logger.error(f"Error comparing faces: {str(e)}")
-            return {
-                'is_match': False,
-                'distance': 1.0,
-                'confidence': 0.0,
-                'error': str(e)
-            }
+            return 0.0
     
     def _analyze_image_quality(self, image_array: np.ndarray) -> Dict[str, float]:
         """
@@ -279,36 +292,61 @@ class FaceRecognitionService:
         
         return min(score, 1.0)
     
-    def log_recognition_attempt(self, user, status: str, confidence_score: float = 0.0, 
-                              image_file: Optional[InMemoryUploadedFile] = None,
-                              request = None) -> 'FaceRecognitionLog':
+    def log_recognition_attempt(self, user, status, confidence_score=0.0, image_file=None, request=None, error_details=None):
         """
-        Log face recognition attempt
+        Enhanced logging for face recognition attempts
         
         Args:
             user: User object
-            status: Recognition status
-            confidence_score: Confidence score of recognition
-            image_file: Optional image file
-            request: Optional request object for IP and user agent
-            
-        Returns:
-            FaceRecognitionLog object
+            status: Recognition status ('success', 'no_face_detected', 'verification_failed', 'technical_error')
+            confidence_score: Confidence score (0.0 to 1.0)
+            image_file: Uploaded image file
+            request: HTTP request object
+            error_details: Additional error information
         """
-        log_data = {
-            'user': user,
-            'status': status,
-            'confidence_score': confidence_score,
-        }
-        
-        if request:
-            log_data['ip_address'] = self._get_client_ip(request)
-            log_data['user_agent'] = request.META.get('HTTP_USER_AGENT', '')
-        
-        if image_file:
-            log_data['image'] = image_file
-        
-        return FaceRecognitionLog.objects.create(**log_data)
+        try:
+            from django.utils import timezone
+            import logging
+            
+            logger = logging.getLogger(__name__)
+            
+            # Create log entry with detailed information
+            log_data = {
+                'user_id': user.id,
+                'username': user.username,
+                'full_name': getattr(user, 'full_name', ''),
+                'status': status,
+                'confidence_score': confidence_score,
+                'timestamp': timezone.now().isoformat(),
+                'ip_address': request.META.get('REMOTE_ADDR') if request else None,
+                'user_agent': request.META.get('HTTP_USER_AGENT') if request else None,
+                'error_details': error_details
+            }
+            
+            # Log based on status level
+            if status == 'success':
+                logger.info(f"✅ Face recognition SUCCESS: User {user.id} ({user.username}) - Confidence: {confidence_score:.2%}")
+            elif status == 'no_face_detected':
+                logger.warning(f"👤❌ No face detected: User {user.id} ({user.username}) - {error_details}")
+            elif status == 'verification_failed':
+                logger.warning(f"🔍❌ Face verification FAILED: User {user.id} ({user.username}) - Confidence: {confidence_score:.2%}")
+            elif status == 'technical_error':
+                logger.error(f"⚠️ Technical error in face recognition: User {user.id} ({user.username}) - {error_details}")
+            else:
+                logger.warning(f"❓ Unknown face recognition status: {status} for User {user.id} ({user.username})")
+            
+            # Detailed log for debugging (only in debug mode)
+            logger.debug(f"Face recognition attempt details: {log_data}")
+            
+            # Here you could also save to database for audit trail if needed
+            # FaceRecognitionLog.objects.create(**log_data)
+            
+        except Exception as e:
+            # Don't let logging errors break the main functionality
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to log face recognition attempt: {str(e)}")
+            pass
     
     def _get_client_ip(self, request) -> str:
         """Get client IP address from request"""

@@ -9,8 +9,14 @@ from django.db import transaction
 from .models import FaceEncoding, FaceRecognitionLog, FaceDetectionSettings, FaceRecognitionStats
 from .services import FaceRecognitionService
 from attendance.models import Attendance
+import base64
+import json
+import cv2
+import numpy as np
+import logging
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 class FaceRegistrationView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -399,4 +405,266 @@ def validate_image_quality(request):
             'file_info': validation_result['file_info']
         })
     else:
-        return Response(result, status=status.HTTP_400_BAD_REQUEST) 
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def departments_with_faces(request):
+    """Get departments with face registration statistics"""
+    from courses.models import Department
+    from django.db.models import Count, Q
+    
+    user = request.user
+    if user.role not in ['admin', 'lecturer']:
+        return Response(
+            {'error': 'Only admins and lecturers can view face registration data'}, 
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Apply filters
+    college_filter = request.query_params.get('college')
+    department_filter = request.query_params.get('department')
+    with_faces_only = request.query_params.get('with_faces_only') == 'true'
+    
+    # Get departments
+    departments = Department.objects.all()
+    
+    if college_filter:
+        departments = departments.filter(college=college_filter)
+    
+    if department_filter:
+        departments = departments.filter(id=department_filter)
+    
+    # Build response data
+    departments_data = []
+    for dept in departments:
+        # Get users in this department
+        users_query = User.objects.filter(department=dept)
+        
+        # Get users with face encodings
+        users_with_faces = users_query.filter(
+            id__in=FaceEncoding.objects.filter(is_active=True).values_list('user_id', flat=True)
+        )
+        
+        # If filtering for users with faces only
+        if with_faces_only:
+            displayed_users = users_with_faces
+        else:
+            displayed_users = users_query
+        
+        # Build user data
+        users_data = []
+        for user in displayed_users:
+            face_encoding = FaceEncoding.objects.filter(user=user, is_active=True).first()
+            
+            user_data = {
+                'id': user.id,
+                'full_name': user.full_name,
+                'username': user.username,
+                'email': user.email,
+                'student_id': getattr(user, 'student_id', None),
+                'lecturer_id': getattr(user, 'lecturer_id', None),
+                'role': user.role,
+                'department': {
+                    'id': dept.id,
+                    'name': dept.name,
+                    'code': dept.code,
+                    'college': {
+                        'id': dept.college.id,
+                        'name': dept.college.name,
+                        'code': dept.college.code,
+                    }
+                },
+                'face_registered': bool(face_encoding),
+                'face_registration_date': face_encoding.created_at if face_encoding else None,
+                'last_recognition': None,  # You can add this from FaceRecognitionLog if needed
+                'recognition_count': FaceRecognitionLog.objects.filter(
+                    user=user, status='success'
+                ).count(),
+                'face_image_url': face_encoding.image.url if face_encoding and face_encoding.image else None,
+            }
+            users_data.append(user_data)
+        
+        # Only include department if it has users (when filtering)
+        if not with_faces_only or users_data:
+            departments_data.append({
+                'id': dept.id,
+                'name': dept.name,
+                'code': dept.code,
+                'college': {
+                    'id': dept.college.id,
+                    'name': dept.college.name,
+                    'code': dept.college.code,
+                },
+                'users_with_face_data': users_data,
+                'total_users': users_query.count(),
+                'users_with_faces': users_with_faces.count(),
+            })
+    
+    return Response({
+        'results': departments_data,
+        'total_departments': len(departments_data)
+    }) 
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def verify_attendance_face(request):
+    """Verify student's face for attendance marking"""
+    try:
+        user = request.user
+        
+        # Only students can verify faces for attendance
+        if not (hasattr(user, 'role') and user.role == 'student'):
+            return Response({'error': 'Only students can verify faces for attendance'}, status=403)
+        
+        # Get the captured image data
+        captured_image_data = request.data.get('captured_image')
+        if not captured_image_data:
+            return Response({'error': 'No image data provided'}, status=400)
+        
+        # Check if user has registered face
+        try:
+            user_face_encoding = FaceEncoding.objects.get(user=user)
+        except FaceEncoding.DoesNotExist:
+            return Response({
+                'error': 'No face registration found. Please register your face first.',
+                'verified': False
+            }, status=400)
+        
+        # Process the captured image
+        try:
+            # Remove data URL prefix if present
+            if captured_image_data.startswith('data:image'):
+                captured_image_data = captured_image_data.split(',')[1]
+            
+            # Decode base64 image
+            image_data = base64.b64decode(captured_image_data)
+            
+            # Convert to OpenCV format
+            nparr = np.frombuffer(image_data, np.uint8)
+            captured_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
+            if captured_image is None:
+                return Response({'error': 'Invalid image format'}, status=400)
+            
+        except Exception as e:
+            return Response({'error': f'Error processing image: {str(e)}'}, status=400)
+        
+        # Initialize face recognition service
+        face_service = FaceRecognitionService()
+        
+        # Extract face encoding from captured image
+        try:
+            captured_encodings = face_service.extract_face_encodings(captured_image)
+            
+            if not captured_encodings:
+                return Response({
+                    'error': 'No face detected in the captured image. Please ensure your face is clearly visible.',
+                    'verified': False
+                }, status=400)
+            
+            # Use the first detected face
+            captured_encoding = captured_encodings[0]
+            
+        except Exception as e:
+            return Response({
+                'error': f'Error extracting face features: {str(e)}',
+                'verified': False
+            }, status=400)
+        
+        # Compare with registered face
+        try:
+            # Get registered encoding (it's already a list, not JSON string)
+            registered_encoding = user_face_encoding.encoding
+            
+            # Ensure we have the right data types
+            if isinstance(registered_encoding, str):
+                # If it's a string, parse as JSON
+                registered_encoding = json.loads(registered_encoding)
+            
+            # Calculate similarity
+            confidence = face_service.compare_faces(
+                np.array(registered_encoding),
+                captured_encoding,
+                threshold=0.6  # Adjustable threshold
+            )
+            
+            # Determine if verification passed
+            verification_passed = confidence >= 0.6
+            
+            # Log verification attempt
+            face_service.log_recognition_attempt(
+                user=request.user,
+                status='success' if verification_passed else 'failed_verification',
+                confidence_score=float(confidence),
+                image_file=image_file,
+                request=request
+            )
+            
+            if verification_passed:
+                return Response({
+                    'verified': True,
+                    'confidence': float(confidence),
+                    'message': f'Face verification successful! Confidence: {confidence:.2%}',
+                    'threshold': 0.6
+                })
+            else:
+                return Response({
+                    'verified': False,
+                    'confidence': float(confidence),
+                    'error': f'Face verification failed. Confidence too low: {confidence:.2%}',
+                    'error_type': 'verification_failed',
+                    'threshold': 0.6,
+                    'suggestions': [
+                        'Ensure good lighting conditions',
+                        'Face the camera directly',
+                        'Remove glasses or accessories if worn during registration',
+                        'Re-register your face if you have significantly changed appearance'
+                    ]
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            # Log technical error
+            logger.error(f"Face comparison error for user {request.user.id}: {str(e)}")
+            face_service.log_recognition_attempt(
+                user=request.user,
+                status='technical_error',
+                confidence_score=0.0,
+                image_file=image_file,
+                request=request,
+                error_details=str(e)
+            )
+            
+            return Response({
+                'verified': False,
+                'error': 'Technical error during face verification. Please try again.',
+                'error_type': 'technical_error',
+                'suggestions': [
+                    'Check your internet connection',
+                    'Try again in a few moments',
+                    'Contact support if the problem persists'
+                ]
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except Exception as e:
+        return Response({
+            'error': f'Unexpected error: {str(e)}',
+            'verified': False
+        }, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def face_registration_status(request):
+    """Check if user has registered their face"""
+    try:
+        user = request.user
+        has_face_registration = FaceEncoding.objects.filter(user=user).exists()
+        
+        return Response({
+            'has_registration': has_face_registration,
+            'user_id': user.id
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=400) 

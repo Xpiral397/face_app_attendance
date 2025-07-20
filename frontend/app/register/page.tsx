@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import { apiClient } from '../../utils/api'
-import AppLayout from '../../components/AppLayout'
 
 interface College {
   id: number
@@ -19,35 +18,6 @@ interface Department {
   college: number
 }
 
-interface User {
-  id: number
-  email: string
-  username: string
-  full_name: string
-  role: 'admin' | 'lecturer' | 'student'
-  student_id?: string
-  lecturer_id?: string
-  department?: number
-  level?: string
-  is_active: boolean
-  created_at: string
-}
-
-interface AuthToken {
-  access: string
-  refresh: string
-  user: User
-}
-
-interface ApiError {
-  response?: {
-    data?: {
-      message?: string
-      [key: string]: any
-    }
-  }
-}
-
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     email: '',
@@ -55,13 +25,11 @@ export default function RegisterPage() {
     full_name: '',
     password: '',
     confirm_password: '',
-    role: 'student' as 'admin' | 'student' | 'lecturer',
+    role: 'student' as const,
     student_id: '',
-    lecturer_id: '',
     college: '',
     department: '',
     level: '',
-    referral_code: '',
   })
   const [colleges, setColleges] = useState<College[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
@@ -76,7 +44,14 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/dashboard')
+      const userData = JSON.parse(localStorage.getItem('user') || '{}')
+      if (userData.role === 'student') {
+        router.push('/student-courses')
+      } else if (userData.role === 'lecturer') {
+        router.push('/my-courses')
+      } else {
+        router.push('/dashboard')
+      }
     }
   }, [isAuthenticated, router])
 
@@ -101,6 +76,13 @@ export default function RegisterPage() {
       setColleges(response?.results || response || [])
     } catch (error) {
       console.error('Error fetching colleges:', error)
+      // Provide fallback colleges if API fails
+      setColleges([
+        { id: 1, name: 'Faculty of Science', code: 'SCI' },
+        { id: 2, name: 'Faculty of Engineering', code: 'ENG' },
+        { id: 3, name: 'Faculty of Arts', code: 'ARTS' },
+        { id: 4, name: 'Faculty of Business', code: 'BUS' }
+      ])
     }
   }
 
@@ -110,6 +92,40 @@ export default function RegisterPage() {
       setDepartments(response?.results || response || [])
     } catch (error) {
       console.error('Error fetching departments:', error)
+      // Provide fallback departments based on college
+      const fallbackDepartments: { [key: string]: any[] } = {
+        '1': [
+          { id: 1, name: 'Computer Science', code: 'CSC' },
+          { id: 2, name: 'Mathematics', code: 'MTH' },
+          { id: 3, name: 'Physics', code: 'PHY' }
+        ],
+        '2': [
+          { id: 4, name: 'Civil Engineering', code: 'CVE' },
+          { id: 5, name: 'Electrical Engineering', code: 'ELE' },
+          { id: 6, name: 'Mechanical Engineering', code: 'MEE' }
+        ],
+        '3': [
+          { id: 7, name: 'English', code: 'ENG' },
+          { id: 8, name: 'History', code: 'HIS' },
+          { id: 9, name: 'Philosophy', code: 'PHI' }
+        ],
+        '4': [
+          { id: 10, name: 'Business Administration', code: 'BUS' },
+          { id: 11, name: 'Economics', code: 'ECO' },
+          { id: 12, name: 'Accounting', code: 'ACC' }
+        ]
+      }
+      setDepartments(fallbackDepartments[collegeId] || [])
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Clear field-specific errors when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: '' }))
     }
   }
 
@@ -151,31 +167,18 @@ export default function RegisterPage() {
       errors.confirm_password = 'Passwords do not match'
     }
     
-    // Role-specific validations
-    if (formData.role === 'student') {
+    // Student-specific validations
       if (!formData.student_id) {
-        errors.student_id = 'Student ID is required for students'
+      errors.student_id = 'Student ID is required'
       }
       if (!formData.college) {
-        errors.college = 'College is required for students'
+      errors.college = 'College is required'
       }
       if (!formData.department) {
-        errors.department = 'Department is required for students'
+      errors.department = 'Department is required'
       }
       if (!formData.level) {
-        errors.level = 'Level is required for students'
-      }
-    } else if (formData.role === 'lecturer') {
-      if (!formData.lecturer_id) {
-        errors.lecturer_id = 'Lecturer ID is required for lecturers'
-      }
-      if (!formData.referral_code) {
-        errors.referral_code = 'Referral code is required for lecturer registration'
-      }
-    } else if (formData.role === 'admin') {
-      if (!formData.referral_code) {
-        errors.referral_code = 'Referral code is required for admin registration'
-      }
+      errors.level = 'Level is required'
     }
     
     setFieldErrors(errors)
@@ -201,52 +204,42 @@ export default function RegisterPage() {
       
       const result = await register(submitData)
       if (result.success) {
-        if (formData.role === 'student') {
-          router.push('/dashboard')
+        const userData = JSON.parse(localStorage.getItem('user') || '{}')
+        if (userData.role === 'student') {
+          router.push('/student-courses')
+        } else if (userData.role === 'lecturer') {
+          router.push('/my-courses')
         } else {
-          // For admin/lecturer, show success message and redirect to login
-          alert('Registration successful! Please wait for admin approval before logging in.')
-          router.push('/login')
+          router.push('/dashboard')
         }
       } else {
-        setError(result.message || 'Registration failed')
+        setError(result.message || 'Registration failed. Please try again.')
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Registration error:', error)
-      setError(error.response?.message || 'Registration failed')
+      setError('An error occurred during registration. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    
-    // Clear field error when user starts typing
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
-  }
-
   return (
-    <AppLayout>
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+          Student Registration
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              sign in to your existing account
-            </a>
+          Create your student account to access the attendance system
+        </p>
+        <p className="mt-2 text-center text-sm text-blue-600">
+          Already have an account?{' '}
+          <button
+            onClick={() => router.push('/login')}
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
+            Sign in here
+          </button>
           </p>
         </div>
 
@@ -269,52 +262,7 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              {/* Role Selection */}
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                  Role <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                >
-                  <option value="student">Student</option>
-                  <option value="lecturer">Lecturer</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              {/* Referral Code for Admin and Lecturer */}
-              {(formData.role === 'admin' || formData.role === 'lecturer') && (
-                <div>
-                  <label htmlFor="referral_code" className="block text-sm font-medium text-gray-700">
-                    Referral Code <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="referral_code"
-                    name="referral_code"
-                    type="text"
-                    value={formData.referral_code}
-                    onChange={handleChange}
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                      fieldErrors.referral_code ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter referral code"
-                  />
-                  {fieldErrors.referral_code && (
-                    <p className="mt-1 text-sm text-red-600">{fieldErrors.referral_code}</p>
-                  )}
-                  <p className="mt-1 text-sm text-gray-500">
-                    A referral code is required for {formData.role} registration
-                  </p>
-                </div>
-              )}
-
               {/* Personal Information */}
-              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
                     Full Name <span className="text-red-500">*</span>
@@ -375,9 +323,6 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                {/* Student-specific fields */}
-                {formData.role === 'student' && (
-                  <>
                     <div>
                       <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">
                         Student ID <span className="text-red-500">*</span>
@@ -473,33 +418,7 @@ export default function RegisterPage() {
                         <p className="mt-1 text-sm text-red-600">{fieldErrors.level}</p>
                       )}
                     </div>
-                  </>
-                )}
 
-                {/* Lecturer-specific fields */}
-                {formData.role === 'lecturer' && (
-                  <div>
-                    <label htmlFor="lecturer_id" className="block text-sm font-medium text-gray-700">
-                      Lecturer ID <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="lecturer_id"
-                      name="lecturer_id"
-                      type="text"
-                      value={formData.lecturer_id}
-                      onChange={handleChange}
-                      className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                        fieldErrors.lecturer_id ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter your lecturer ID"
-                    />
-                    {fieldErrors.lecturer_id && (
-                      <p className="mt-1 text-sm text-red-600">{fieldErrors.lecturer_id}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Password fields */}
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     Password <span className="text-red-500">*</span>
@@ -574,7 +493,6 @@ export default function RegisterPage() {
                   {fieldErrors.confirm_password && (
                     <p className="mt-1 text-sm text-red-600">{fieldErrors.confirm_password}</p>
                   )}
-                </div>
               </div>
 
               <div>
@@ -583,13 +501,24 @@ export default function RegisterPage() {
                   disabled={loading}
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? 'Creating Account...' : 'Create Student Account'}
                 </button>
               </div>
+
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Note: Only students can register online. <br />
+                Lecturers and administrators are created by system administrators.
+              </p>
+              {colleges.length <= 4 && (
+                <p className="text-xs text-amber-600 mt-2">
+                  ⚠️ Using fallback data - College/Department lists may be limited. Contact admin if needed.
+                </p>
+              )}
+            </div>
             </form>
           </div>
         </div>
       </div>
-    </AppLayout>
   )
 } 

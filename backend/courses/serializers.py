@@ -1,18 +1,16 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import get_user_model
 from .models import (
     College, Department, Course, CourseAssignment, 
-    Enrollment, ClassSession, Notification, ClassAttendance
+    Enrollment, ClassSession, Notification, ClassAttendance, Room
 )
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 class UserBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'full_name', 'email', 'role', 'student_id', 'lecturer_id']
+        fields = ['id', 'username', 'full_name', 'email', 'lecturer_id']
 
 class CollegeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,6 +28,19 @@ class DepartmentSerializer(serializers.ModelSerializer):
         model = Department
         fields = ['id', 'name', 'code', 'college', 'college_id', 'description', 'is_active', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+class RoomSerializer(serializers.ModelSerializer):
+    created_by = UserBasicSerializer(read_only=True)
+    
+    class Meta:
+        model = Room
+        fields = [
+            'id', 'name', 'code', 'room_type', 'capacity',
+            'building', 'floor', 'facilities',
+            'virtual_platform', 'default_meeting_link', 'meeting_id', 'passcode',
+            'timezone', 'is_available', 'notes', 'created_at', 'created_by'
+        ]
+        read_only_fields = ['id', 'created_at', 'created_by']
 
 class CourseSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer(read_only=True)
@@ -51,7 +62,7 @@ class CourseAssignmentSerializer(serializers.ModelSerializer):
     lecturer = UserBasicSerializer(read_only=True)
     assigned_by = UserBasicSerializer(read_only=True)
     
-    # For write operations, we still need the IDs
+    # For write operations
     course_id = serializers.IntegerField(write_only=True)
     lecturer_id = serializers.IntegerField(write_only=True)
     
@@ -62,65 +73,113 @@ class CourseAssignmentSerializer(serializers.ModelSerializer):
             'academic_year', 'semester', 'is_active', 'assigned_by', 'assigned_at'
         ]
         read_only_fields = ['id', 'assigned_by', 'assigned_at']
-    
-    def validate(self, attrs):
-        lecturer_id = attrs.get('lecturer_id')
-        if lecturer_id:
-            try:
-                lecturer = User.objects.get(id=lecturer_id)
-                if lecturer.role != 'lecturer':
-                    raise serializers.ValidationError("Only users with lecturer role can be assigned to courses")
-            except User.DoesNotExist:
-                raise serializers.ValidationError("Lecturer not found")
-        return attrs
-
-class EnrollmentSerializer(serializers.ModelSerializer):
-    student = UserBasicSerializer(read_only=True)
-    course_assignment = CourseAssignmentSerializer(read_only=True)
-    processed_by = UserBasicSerializer(read_only=True)
-    
-    class Meta:
-        model = Enrollment
-        fields = [
-            'id', 'student', 'course_assignment', 'status', 'requested_at',
-            'processed_at', 'processed_by', 'notes'
-        ]
-        read_only_fields = ['id', 'student', 'requested_at', 'processed_by']
 
 class ClassSessionSerializer(serializers.ModelSerializer):
     course_assignment = CourseAssignmentSerializer(read_only=True)
+    room = RoomSerializer(read_only=True)
+    created_by = UserBasicSerializer(read_only=True)
+    parent_session = serializers.PrimaryKeyRelatedField(read_only=True)
+    
+    # For write operations
+    course_assignment_id = serializers.IntegerField(write_only=True)
+    room_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
+    # Computed fields
+    effective_location = serializers.CharField(read_only=True)
+    effective_meeting_link = serializers.URLField(read_only=True)
+    capacity = serializers.IntegerField(read_only=True)
+    conflicts = serializers.SerializerMethodField()
     
     class Meta:
         model = ClassSession
         fields = [
-            'id', 'course_assignment', 'title', 'description', 'class_type',
-            'scheduled_date', 'start_time', 'end_time', 'venue', 'virtual_link',
-            'attendance_window_start', 'attendance_window_end', 'is_recurring',
-            'recurrence_pattern', 'is_active', 'created_at'
+            'id', 'course_assignment', 'course_assignment_id', 'title', 'description', 'class_type',
+            'scheduled_date', 'start_time', 'end_time', 'timezone',
+            'room', 'room_id', 'custom_location', 'effective_location',
+            'meeting_link', 'meeting_id', 'meeting_passcode', 'effective_meeting_link',
+            'attendance_window_start', 'attendance_window_end', 'attendance_required', 'attendance_method',
+            'is_recurring', 'recurrence_pattern', 'recurrence_end_date', 'parent_session',
+            'is_active', 'is_cancelled', 'cancellation_reason', 'max_capacity', 'capacity',
+            'created_at', 'updated_at', 'created_by', 'conflicts'
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'effective_location', 'effective_meeting_link', 'capacity', 'conflicts']
+    
+    def get_conflicts(self, obj):
+        """Get scheduling conflicts for this session"""
+        if obj.id:  # Only check conflicts for existing sessions
+            return obj.check_conflicts()
+        return []
+    
+    def validate(self, data):
+        """Custom validation for session data"""
+        # Validate time range
+        if data.get('end_time') and data.get('start_time'):
+            if data['end_time'] <= data['start_time']:
+                raise serializers.ValidationError("End time must be after start time")
+        
+        # Validate attendance window
+        if data.get('attendance_window_end') and data.get('attendance_window_start'):
+            if data['attendance_window_end'] <= data['attendance_window_start']:
+                raise serializers.ValidationError("Attendance window end must be after start")
+        
+        # Validate recurrence
+        if data.get('is_recurring') and data.get('recurrence_pattern') == 'none':
+            raise serializers.ValidationError("Recurrence pattern must be specified for recurring sessions")
+        
+        if data.get('is_recurring') and not data.get('recurrence_end_date'):
+            raise serializers.ValidationError("Recurrence end date is required for recurring sessions")
+        
+        return data
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    student = UserBasicSerializer(read_only=True)
+    course_assignment = CourseAssignmentSerializer(read_only=True)
+    enrolled_by = UserBasicSerializer(read_only=True)
+    
+    # For write operations
+    course_assignment_id = serializers.IntegerField(write_only=True, source='course_assignment')
+    
+    class Meta:
+        model = Enrollment
+        fields = ['id', 'student', 'course_assignment', 'course_assignment_id', 'status', 'enrolled_at', 'enrolled_by']
+        read_only_fields = ['id', 'enrolled_at']
 
 class NotificationSerializer(serializers.ModelSerializer):
     sender = UserBasicSerializer(read_only=True)
-    related_enrollment = EnrollmentSerializer(read_only=True)
-    related_class_session = ClassSessionSerializer(read_only=True)
+    recipient = UserBasicSerializer(read_only=True)
     
     class Meta:
         model = Notification
         fields = [
-            'id', 'sender', 'notification_type', 'title', 'message', 'is_read',
-            'related_enrollment', 'related_class_session', 'created_at'
+            'id', 'recipient', 'sender', 'notification_type', 'title', 'message',
+            'is_read', 'created_at'
         ]
-        read_only_fields = ['id', 'sender', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 class ClassAttendanceSerializer(serializers.ModelSerializer):
     student = UserBasicSerializer(read_only=True)
     class_session = ClassSessionSerializer(read_only=True)
     
+    # For write operations
+    class_session_id = serializers.IntegerField(write_only=True, source='class_session')
+    captured_image = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
     class Meta:
         model = ClassAttendance
         fields = [
-            'id', 'class_session', 'student', 'status', 'marked_at',
-            'face_verified', 'location', 'notes'
+            'id', 'student', 'class_session', 'class_session_id', 'status', 
+            'marked_at', 'face_verified', 'location', 'notes', 'captured_image'
         ]
-        read_only_fields = ['id', 'student', 'marked_at'] 
+        read_only_fields = ['id', 'marked_at', 'student']
+    
+    def create(self, validated_data):
+        # Remove captured_image from validated_data since it's not a model field
+        captured_image = validated_data.pop('captured_image', None)
+        
+        # Create the attendance record without captured_image
+        attendance = ClassAttendance.objects.create(**validated_data)
+        
+        # TODO: If needed, save captured_image to a separate model or file storage
+        # For now, we'll just ignore it since the main functionality is attendance marking
+        
+        return attendance 

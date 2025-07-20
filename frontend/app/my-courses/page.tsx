@@ -1,9 +1,11 @@
+// File: /app/my-courses/page.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { apiClient } from '../../utils/api'
 import AppLayout from '../../components/AppLayout'
+import SessionModal from './SessionModal'
 
 interface Course {
   id: number
@@ -16,6 +18,9 @@ interface Course {
   lecturer: number
   is_active: boolean
   enrollment_count?: number
+  assignment_id: number
+  academic_year?: string
+  semester?: string
 }
 
 interface Student {
@@ -27,61 +32,50 @@ interface Student {
   is_class_rep: boolean
 }
 
-interface ClassSession {
-  id: number
-  course: number
-  title: string
-  description: string
-  scheduled_time: string
-  duration: number
-  location: string
-  is_cancelled: boolean
-  is_recurring: boolean
-  recurrence_pattern: string
-}
-
 export default function MyCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [students, setStudents] = useState<Student[]>([])
-  const [sessions, setSessions] = useState<ClassSession[]>([])
-  const [activeTab, setActiveTab] = useState('overview') // overview, students, schedule, settings
+  const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [showAddStudentModal, setShowAddStudentModal] = useState(false)
   const [showSessionModal, setShowSessionModal] = useState(false)
-  const [searchEmail, setSearchEmail] = useState('')
-  const [sessionForm, setSessionForm] = useState({
-    title: '',
-    description: '',
-    scheduled_time: '',
-    duration: 90,
-    location: '',
-    is_recurring: false,
-    recurrence_pattern: 'weekly'
-  })
+  const [showDepartmentImport, setShowDepartmentImport] = useState(false)
+  const [departments, setDepartments] = useState<any[]>([])
+  const [selectedDepartment, setSelectedDepartment] = useState('')
+  const [importingStudents, setImportingStudents] = useState(false)
+  const [sessions, setSessions] = useState<any[]>([])
+  const [loadingSessions, setLoadingSessions] = useState(false)
 
   const { user, isLecturer } = useAuth()
 
   useEffect(() => {
     if (isLecturer) {
       fetchMyCourses()
+      fetchDepartments()
     }
   }, [isLecturer])
-
-  useEffect(() => {
-    if (selectedCourse) {
-      fetchCourseStudents(selectedCourse.id)
-      fetchCourseSessions(selectedCourse.id)
-    }
-  }, [selectedCourse])
 
   const fetchMyCourses = async () => {
     try {
       setLoading(true)
-      const response = await apiClient.get('/courses/courses/?lecturer=me')
-      const coursesData = response.data || []
+      const response = await apiClient.get('/courses/course-assignments/?lecturer=me')
+      const assignmentsData = response.results || response || []
+      const coursesData = assignmentsData.map((assignment: any) => ({
+        id: assignment.course.id,
+        code: assignment.course.code,
+        title: assignment.course.title,
+        description: assignment.course.description,
+        department: assignment.course.department,
+        level: assignment.course.level,
+        credit_units: assignment.course.credit_units,
+        lecturer: assignment.lecturer.id,
+        is_active: assignment.is_active,
+        assignment_id: assignment.id,
+        academic_year: assignment.academic_year,
+        semester: assignment.semester
+      }))
       setCourses(coursesData)
       if (coursesData.length > 0) {
         setSelectedCourse(coursesData[0])
@@ -94,10 +88,44 @@ export default function MyCoursesPage() {
     }
   }
 
+  const fetchDepartments = async () => {
+    try {
+      const response = await apiClient.get('/courses/departments/')
+      setDepartments(response.results || response || [])
+    } catch (error) {
+      console.error('Error fetching departments:', error)
+    }
+  }
+
+  const handleImportDepartment = async () => {
+    if (!selectedDepartment || !selectedCourse?.assignment_id) return
+    try {
+      setImportingStudents(true)
+      const response = await apiClient.post('/courses/enrollments/import-department/', {
+        course_assignment_id: selectedCourse.assignment_id,
+        department_id: parseInt(selectedDepartment),
+        status: 'enrolled',
+        enrolled_by: user?.id
+      })
+      setSuccess(`Successfully imported ${response.imported_count || 0} students from department`)
+      setShowDepartmentImport(false)
+      setSelectedDepartment('')
+      if (selectedCourse) {
+        fetchCourseStudents(selectedCourse.id)
+        fetchCourseSessions(selectedCourse.assignment_id)
+      }
+    } catch (error: any) {
+      console.error('Import error:', error.response?.data)
+      setError(error.response?.data?.error || error.response?.data?.message || 'Failed to import department students')
+    } finally {
+      setImportingStudents(false)
+    }
+  }
+
   const fetchCourseStudents = async (courseId: number) => {
     try {
-      const response = await apiClient.get(`/courses/enrollments/?course=${courseId}&status=approved`)
-      const enrollmentsData = response.data || []
+      const response = await apiClient.get(`/courses/enrollments/?course_assignment=${selectedCourse?.assignment_id}&status=enrolled`)
+      const enrollmentsData = response.results || response || []
       const studentsData = enrollmentsData.map((enrollment: any) => ({
         ...enrollment.student,
         is_class_rep: enrollment.is_class_rep || false
@@ -108,99 +136,41 @@ export default function MyCoursesPage() {
     }
   }
 
-  const fetchCourseSessions = async (courseId: number) => {
+  // Add function to fetch sessions
+  const fetchCourseSessions = async (courseAssignmentId: number) => {
     try {
-      const response = await apiClient.get(`/courses/sessions/?course=${courseId}`)
-      setSessions(response.data || [])
+      setLoadingSessions(true)
+      const response = await apiClient.get(`/courses/sessions/?course_assignment=${courseAssignmentId}`)
+      setSessions(response.results || response || [])
     } catch (error) {
       console.error('Error fetching sessions:', error)
+    } finally {
+      setLoadingSessions(false)
     }
   }
 
-  const handleAddStudent = async () => {
-    if (!searchEmail.trim()) return
+  // Add function to delete session
+  const handleDeleteSession = async (sessionId: number) => {
+    if (!confirm('Are you sure you want to delete this session?')) return
     
     try {
-      const response = await apiClient.post('/courses/enrollments/', {
-        course: selectedCourse?.id,
-        student_email: searchEmail,
-        status: 'approved'
-      })
-      setSuccess('Student added successfully!')
-      setSearchEmail('')
-      setShowAddStudentModal(false)
-      fetchCourseStudents(selectedCourse!.id)
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to add student')
-    }
-  }
-
-  const handleRemoveStudent = async (studentId: number) => {
-    if (!confirm('Are you sure you want to remove this student from the course?')) return
-    
-    try {
-      await apiClient.delete(`/courses/enrollments/${studentId}/`)
-      setSuccess('Student removed successfully!')
-      fetchCourseStudents(selectedCourse!.id)
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to remove student')
-    }
-  }
-
-  const handleSetClassRep = async (studentId: number) => {
-    try {
-      // First, remove class rep status from all students
-      await apiClient.post('/courses/enrollments/set-class-rep/', {
-        course: selectedCourse?.id,
-        student: studentId
-      })
-      setSuccess('Class representative updated successfully!')
-      fetchCourseStudents(selectedCourse!.id)
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to set class representative')
-    }
-  }
-
-  const handleCreateSession = async () => {
-    try {
-      const sessionData = {
-        ...sessionForm,
-        course: selectedCourse?.id,
-        scheduled_time: new Date(sessionForm.scheduled_time).toISOString()
+      await apiClient.delete(`/courses/sessions/${sessionId}/`)
+      setSuccess('Session deleted successfully')
+      if (selectedCourse) {
+        fetchCourseSessions(selectedCourse.assignment_id)
       }
-      
-      await apiClient.post('/courses/sessions/', sessionData)
-      setSuccess('Class session created successfully!')
-      setShowSessionModal(false)
-      resetSessionForm()
-      fetchCourseSessions(selectedCourse!.id)
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to create session')
+      console.error('Delete error:', error.response?.data)
+      setError(error.response?.data?.error || 'Failed to delete session')
     }
   }
 
-  const handleCancelSession = async (sessionId: number) => {
-    if (!confirm('Are you sure you want to cancel this session?')) return
-    
-    try {
-      await apiClient.patch(`/courses/sessions/${sessionId}/`, { is_cancelled: true })
-      setSuccess('Session cancelled successfully!')
-      fetchCourseSessions(selectedCourse!.id)
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to cancel session')
-    }
-  }
+  // Add function to edit session
+  const [editingSession, setEditingSession] = useState<any>(null)
 
-  const resetSessionForm = () => {
-    setSessionForm({
-      title: '',
-      description: '',
-      scheduled_time: '',
-      duration: 90,
-      location: '',
-      is_recurring: false,
-      recurrence_pattern: 'weekly'
-    })
+  const handleEditSession = (session: any) => {
+    setEditingSession(session)
+    setShowSessionModal(true)
   }
 
   if (!isLecturer) {
@@ -239,7 +209,7 @@ export default function MyCoursesPage() {
         )}
 
         <div className="flex space-x-6">
-          {/* Sidebar - Course List */}
+          {/* Sidebar */}
           <div className="w-1/3">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="px-4 py-3 border-b border-gray-200">
@@ -257,7 +227,7 @@ export default function MyCoursesPage() {
                     {courses.map((course) => (
                       <div
                         key={course.id}
-                        onClick={() => setSelectedCourse(course)}
+                        onClick={() => { setSelectedCourse(course); setActiveTab('overview'); setStudents([]) }}
                         className={`p-3 rounded-lg cursor-pointer transition-colors ${
                           selectedCourse?.id === course.id
                             ? 'bg-blue-50 border-blue-200 border'
@@ -277,7 +247,7 @@ export default function MyCoursesPage() {
             </div>
           </div>
 
-          {/* Main Content */}
+          {/* Main */}
           <div className="flex-1">
             {selectedCourse ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -298,355 +268,266 @@ export default function MyCoursesPage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="border-b border-gray-200">
-                  <nav className="flex space-x-8 px-6">
-                    {[
-                      { id: 'overview', label: 'Overview' },
-                      { id: 'students', label: 'Students' },
-                      { id: 'schedule', label: 'Schedule' },
-                      { id: 'settings', label: 'Settings' }
-                    ].map((tab) => (
+                <div className="px-6 py-4">
+                  <div className="flex space-x-4 border-b border-gray-200">
+                    {['overview','students','schedule','settings'].map(tab => (
                       <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                          activeTab === tab.id
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        key={tab}
+                        onClick={() => {
+                          setActiveTab(tab)
+                          if (tab === 'students') fetchCourseStudents(selectedCourse.id)
+                          if (tab === 'schedule') fetchCourseSessions(selectedCourse.assignment_id)
+                        }}
+                        className={`px-3 py-2 text-sm font-medium ${
+                          activeTab === tab
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
                         }`}
                       >
-                        {tab.label}
+                        {tab.charAt(0).toUpperCase()+tab.slice(1)}
                       </button>
                     ))}
-                  </nav>
+                  </div>
                 </div>
 
                 {/* Tab Content */}
-                <div className="p-6">
-                  {/* Overview Tab */}
+                <div className="px-6 py-4">
                   {activeTab === 'overview' && (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-semibold text-blue-900">{students.length}</h3>
-                          <p className="text-blue-700 text-sm">Enrolled Students</p>
-                        </div>
-                        <div className="bg-green-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-semibold text-green-900">{sessions.length}</h3>
-                          <p className="text-green-700 text-sm">Scheduled Sessions</p>
-                        </div>
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                          <h3 className="text-lg font-semibold text-purple-900">
-                            {students.filter(s => s.is_class_rep).length}
-                          </h3>
-                          <p className="text-purple-700 text-sm">Class Representative</p>
-                        </div>
-                      </div>
-                      
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Sessions</h3>
-                        <div className="space-y-2">
-                          {sessions.slice(0, 3).map((session) => (
-                            <div key={session.id} className="p-3 bg-gray-50 rounded-lg">
-                              <h4 className="font-medium text-gray-900">{session.title}</h4>
-                              <p className="text-sm text-gray-600">
-                                {new Date(session.scheduled_time).toLocaleString()}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      <h3 className="text-lg font-medium text-gray-900">Course Overview</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        This is a brief overview of the course content and objectives.
+                      </p>
                     </div>
                   )}
 
-                  {/* Students Tab */}
                   {activeTab === 'students' && (
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Enrolled Students</h3>
+                    <div className="p-6">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-medium text-gray-900">Enrolled Students</h3>
                         <button
-                          onClick={() => setShowAddStudentModal(true)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm"
+                          onClick={() => setShowDepartmentImport(true)}
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                         >
-                          Add Student
+                          Import Department
                         </button>
                       </div>
                       
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
+                      {students.length === 0 ? (
+                        <div className="text-center py-8">
+                          <h3 className="mt-2 text-sm font-medium text-gray-900">No students enrolled</h3>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Import students from a department to get started.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                          <table className="min-w-full divide-y divide-gray-300">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                Student
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                ID
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                Level
-                              </th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                Role
-                              </th>
-                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                                Actions
-                              </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-gray-200">
                             {students.map((student) => (
                               <tr key={student.id}>
-                                <td className="px-4 py-2">
-                                  <div>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                        <span className="text-sm font-medium text-gray-700">
+                                          {student.full_name?.charAt(0) || 'S'}
+                                        </span>
+                                      </div>
+                                      <div className="ml-4">
                                     <div className="text-sm font-medium text-gray-900">{student.full_name}</div>
                                     <div className="text-sm text-gray-500">{student.email}</div>
                                   </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {student.student_id || 'N/A'}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {student.level || 'N/A'}
                                 </td>
-                                <td className="px-4 py-2 text-sm text-gray-900">{student.student_id}</td>
-                                <td className="px-4 py-2 text-sm text-gray-900">{student.level}</td>
-                                <td className="px-4 py-2">
+                                  <td className="px-6 py-4 whitespace-nowrap">
                                   {student.is_class_rep ? (
-                                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                                       Class Rep
                                     </span>
                                   ) : (
-                                    <span className="text-sm text-gray-500">Student</span>
-                                  )}
-                                </td>
-                                <td className="px-4 py-2 text-right text-sm">
-                                  <div className="flex justify-end space-x-2">
-                                    {!student.is_class_rep && (
                                       <button
-                                        onClick={() => handleSetClassRep(student.id)}
-                                        className="text-blue-600 hover:text-blue-800 text-xs"
+                                        onClick={() => {/* handleSetClassRep */}}
+                                        className="text-indigo-600 hover:text-indigo-900 text-xs"
                                       >
-                                        Set as Rep
+                                        Make Class Rep
                                       </button>
                                     )}
-                                    <button
-                                      onClick={() => handleRemoveStudent(student.id)}
-                                      className="text-red-600 hover:text-red-800 text-xs"
-                                    >
-                                      Remove
-                                    </button>
-                                  </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button className="text-red-600 hover:text-red-900">Remove</button>
                                 </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Schedule Tab */}
                   {activeTab === 'schedule' && (
                     <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Class Schedule</h3>
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-medium text-gray-900">Class Schedule</h3>
                         <button
                           onClick={() => setShowSessionModal(true)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm"
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
-                          Schedule Class
+                          Create Session
                         </button>
                       </div>
                       
+                      {/* Sessions List */}
+                      {loadingSessions ? (
+                        <div className="text-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                        </div>
+                      ) : sessions.length === 0 ? (
+                        <div className="text-center py-8">
+                          <h3 className="mt-2 text-sm font-medium text-gray-900">No sessions created</h3>
+                          <p className="mt-1 text-sm text-gray-500">
+                            Create your first class session to get started.
+                          </p>
+                        </div>
+                      ) : (
                       <div className="space-y-4">
                         {sessions.map((session) => (
-                          <div key={session.id} className="p-4 border border-gray-200 rounded-lg">
+                            <div key={session.id} className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start">
                               <div>
-                                <h4 className="font-medium text-gray-900">{session.title}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{session.description}</p>
-                                <div className="mt-2 text-sm text-gray-500">
-                                  <p>📅 {new Date(session.scheduled_time).toLocaleString()}</p>
-                                  <p>⏱️ {session.duration} minutes</p>
-                                  <p>📍 {session.location}</p>
+                                  <h4 className="text-lg font-medium text-gray-900">{session.title}</h4>
+                                  <p className="text-sm text-gray-600">{session.description}</p>
+                                  <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                                    <span>📅 {new Date(session.scheduled_date).toLocaleDateString()}</span>
+                                    <span>🕐 {session.start_time} - {session.end_time}</span>
+                                    <span>📍 {session.effective_location}</span>
+                                    <span className="capitalize bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                      {session.class_type}
+                                    </span>
+                                  </div>
                                   {session.is_recurring && (
-                                    <p>🔄 Recurring ({session.recurrence_pattern})</p>
+                                    <div className="mt-1 text-xs text-purple-600">
+                                      🔄 Recurring {session.recurrence_pattern}
+                                    </div>
                                   )}
                                 </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                {session.is_cancelled ? (
-                                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                    Cancelled
+                                <div className="text-right">
+                                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    session.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {session.is_active ? 'Active' : 'Inactive'}
                                   </span>
-                                ) : (
                                   <button
-                                    onClick={() => handleCancelSession(session.id)}
-                                    className="text-red-600 hover:text-red-800 text-sm"
+                                    onClick={() => handleEditSession(session)}
+                                    className="ml-2 text-indigo-600 hover:text-indigo-900 text-xs"
                                   >
-                                    Cancel
+                                    Edit
                                   </button>
-                                )}
+                                  <button
+                                    onClick={() => handleDeleteSession(session.id)}
+                                    className="ml-2 text-red-600 hover:text-red-900 text-xs"
+                                  >
+                                    Delete
+                                  </button>
                               </div>
                             </div>
                           </div>
                         ))}
                       </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Settings Tab */}
                   {activeTab === 'settings' && (
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Settings</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Course Status
-                          </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                          </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Enrollment Limit
-                          </label>
-                          <input
-                            type="number"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                            placeholder="Enter enrollment limit"
-                          />
-                        </div>
-                        
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                          Save Changes
-                        </button>
-                      </div>
+                      <h3 className="text-lg font-medium text-gray-900">Course Settings</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Adjust course settings and preferences here.
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                <p className="text-gray-500">Select a course to manage</p>
+              <div className="text-center py-8">
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No course selected</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Select a course to view details.
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Add Student Modal */}
-        {showAddStudentModal && (
+        {/* Session Modal */}
+        {showSessionModal && selectedCourse && (
+          <SessionModal
+            selectedCourse={selectedCourse}
+            onClose={() => {
+              setShowSessionModal(false)
+              setEditingSession(null)
+            }}
+            onSessionCreated={() => fetchCourseSessions(selectedCourse.assignment_id)}
+            editingSession={editingSession}
+          />
+        )}
+
+        {/* Department Import Modal */}
+        {showDepartmentImport && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Add Student to Course</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Import Students from Department</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Student Email
+                    Select Department
                     </label>
-                    <input
-                      type="email"
-                      value={searchEmail}
-                      onChange={(e) => setSearchEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="Enter student email"
-                    />
+                  <select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select a department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
                   </div>
                   
                   <div className="flex justify-end space-x-3">
                     <button
-                      onClick={() => setShowAddStudentModal(false)}
+                    onClick={() => setShowDepartmentImport(false)}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                     >
                       Cancel
                     </button>
                     <button
-                      onClick={handleAddStudent}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                    onClick={handleImportDepartment}
+                    disabled={!selectedDepartment || importingStudents}
+                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                     >
-                      Add Student
+                    {importingStudents ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    ) : null}
+                    {importingStudents ? 'Importing...' : 'Import Students'}
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Schedule Session Modal */}
-        {showSessionModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Schedule Class Session</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={sessionForm.title}
-                      onChange={(e) => setSessionForm({...sessionForm, title: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="Enter session title"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date & Time</label>
-                    <input
-                      type="datetime-local"
-                      value={sessionForm.scheduled_time}
-                      onChange={(e) => setSessionForm({...sessionForm, scheduled_time: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration (minutes)</label>
-                    <input
-                      type="number"
-                      value={sessionForm.duration}
-                      onChange={(e) => setSessionForm({...sessionForm, duration: parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                    <input
-                      type="text"
-                      value={sessionForm.location}
-                      onChange={(e) => setSessionForm({...sessionForm, location: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="Enter location"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="recurring"
-                      checked={sessionForm.is_recurring}
-                      onChange={(e) => setSessionForm({...sessionForm, is_recurring: e.target.checked})}
-                      className="mr-2"
-                    />
-                    <label htmlFor="recurring" className="text-sm text-gray-700">
-                      Recurring session
-                    </label>
-                  </div>
-                  
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      onClick={() => setShowSessionModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleCreateSession}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                    >
-                      Schedule
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>

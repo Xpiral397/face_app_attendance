@@ -1,20 +1,15 @@
 from django.urls import path
-from .views import (
-    FaceRegistrationView,
-    FaceRecognitionAttendanceView,
-    FaceRecognitionVerifyView,
-    FaceRecognitionStatsView,
-    FaceRecognitionSettingsView,
-    face_recognition_logs,
-    validate_image_quality,
-)
+from . import views
 
 urlpatterns = [
-    path('register/', FaceRegistrationView.as_view(), name='face-register'),
-    path('attendance/', FaceRecognitionAttendanceView.as_view(), name='face-attendance'),
-    path('verify/', FaceRecognitionVerifyView.as_view(), name='face-verify'),
-    path('stats/', FaceRecognitionStatsView.as_view(), name='face-stats'),
-    path('settings/', FaceRecognitionSettingsView.as_view(), name='face-settings'),
-    path('logs/', face_recognition_logs, name='face-logs'),
-    path('validate-image/', validate_image_quality, name='validate-image'),
+    path('register/', views.FaceRegistrationView.as_view(), name='face_register'),
+    path('verify-attendance/', views.verify_attendance_face, name='verify_attendance_face'),
+    path('registration-status/', views.face_registration_status, name='face_registration_status'),
+    path('attendance/', views.FaceRecognitionAttendanceView.as_view(), name='face_attendance'),
+    path('verify/', views.FaceRecognitionVerifyView.as_view(), name='face_verify'),
+    path('stats/', views.FaceRecognitionStatsView.as_view(), name='face_stats'),
+    path('settings/', views.FaceRecognitionSettingsView.as_view(), name='face_settings'),
+    path('logs/', views.face_recognition_logs, name='face_logs'),
+    path('validate-quality/', views.validate_image_quality, name='validate_image_quality'),
+    path('departments-with-faces/', views.departments_with_faces, name='departments_with_faces'),
 ] 

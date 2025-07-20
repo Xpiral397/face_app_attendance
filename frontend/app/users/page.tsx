@@ -73,7 +73,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      let url = '/users/users/'
+      let url = '/auth/users/'
       
       const params = new URLSearchParams()
       if (selectedRole) params.append('role', selectedRole)
@@ -178,10 +178,10 @@ export default function UsersPage() {
       }
 
       if (editingUser) {
-        await apiClient.put(`/users/users/${editingUser.id}/`, submitData)
+        await apiClient.put(`/auth/users/${editingUser.id}/`, submitData)
         setSuccess('User updated successfully')
       } else {
-        await apiClient.post('/users/users/', submitData)
+        await apiClient.post('/auth/users/create/', submitData)
         setSuccess('User created successfully')
       }
       
@@ -217,7 +217,7 @@ export default function UsersPage() {
     }
 
     try {
-      await apiClient.delete(`/users/users/${userId}/`)
+      await apiClient.delete(`/auth/users/${userId}/`)
       setSuccess('User deleted successfully')
       fetchUsers()
     } catch (error: any) {
@@ -228,7 +228,7 @@ export default function UsersPage() {
 
   const handleToggleActive = async (userId: number, currentStatus: boolean) => {
     try {
-      await apiClient.patch(`/users/users/${userId}/`, { is_active: !currentStatus })
+      await apiClient.patch(`/auth/users/${userId}/`, { is_active: !currentStatus })
       setSuccess(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`)
       fetchUsers()
     } catch (error: any) {

@@ -2,39 +2,57 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # College and Department endpoints
+    # College and Department URLs
     path('colleges/', views.CollegeListCreateView.as_view(), name='college-list-create'),
     path('colleges/<int:pk>/', views.CollegeDetailView.as_view(), name='college-detail'),
     path('departments/', views.DepartmentListCreateView.as_view(), name='department-list-create'),
     path('departments/<int:pk>/', views.DepartmentDetailView.as_view(), name='department-detail'),
     
-    # Course management endpoints
+    # Room Management URLs
+    path('rooms/', views.RoomListCreateView.as_view(), name='room-list-create'),
+    path('rooms/<int:pk>/', views.RoomDetailView.as_view(), name='room-detail'),
+    path('rooms/check-availability/', views.check_room_availability, name='check-room-availability'),
+    
+    # Course URLs
     path('courses/', views.CourseListCreateView.as_view(), name='course-list-create'),
     path('courses/<int:pk>/', views.CourseDetailView.as_view(), name='course-detail'),
     
-    # Course assignment endpoints
-    path('assignments/', views.CourseAssignmentListCreateView.as_view(), name='assignment-list-create'),
-    path('assignments/<int:pk>/', views.CourseAssignmentDetailView.as_view(), name='assignment-detail'),
+    # Course Assignment URLs
+    path('course-assignments/', views.CourseAssignmentListCreateView.as_view(), name='course-assignment-list-create'),
+    path('course-assignments/<int:pk>/', views.CourseAssignmentDetailView.as_view(), name='course-assignment-detail'),
+    path('course-assignments/available-courses/', views.available_courses_for_assignment, name='available-courses'),
+    path('course-assignments/lecturer-workload/', views.lecturer_workload, name='lecturer-workload'),
     
-    # Enrollment endpoints
-    path('enrollments/', views.EnrollmentListView.as_view(), name='enrollment-list'),
-    path('enrollments/request/', views.EnrollmentRequestView.as_view(), name='enrollment-request'),
-    path('enrollments/<int:pk>/process/', views.EnrollmentProcessView.as_view(), name='enrollment-process'),
+    # Lecturers endpoint for course management
+    path('lecturers/', views.LecturerListView.as_view(), name='lecturer-list'),
     
-    # Class session endpoints
+    # Session Management URLs
     path('sessions/', views.ClassSessionListCreateView.as_view(), name='session-list-create'),
     path('sessions/<int:pk>/', views.ClassSessionDetailView.as_view(), name='session-detail'),
+    path('sessions/check-conflicts/', views.check_session_conflicts, name='check-session-conflicts'),
+    path('sessions/suggest-times/', views.suggest_optimal_times, name='suggest-optimal-times'),
+    path('lecturer-free-times/', views.lecturer_free_times, name='lecturer-free-times'),
     
-    # Attendance endpoints
-    path('attendance/mark/', views.MarkClassAttendanceView.as_view(), name='mark-class-attendance'),
-    path('attendance/session/<int:session_id>/', views.ClassAttendanceListView.as_view(), name='class-attendance-list'),
+    # Enrollment URLs
+    path('enrollments/', views.EnrollmentListCreateView.as_view(), name='enrollment-list-create'),
+    path('enrollments/<int:pk>/', views.EnrollmentDetailView.as_view(), name='enrollment-detail'),
+    path('enrollments/my-enrollments/', views.my_enrollments, name='my-enrollments'),
+    path('enrollments/import-department/', views.import_department_students, name='import-department-students'),
     
-    # Notification endpoints
+    # Notification URLs
     path('notifications/', views.NotificationListView.as_view(), name='notification-list'),
-    path('notifications/<int:pk>/read/', views.MarkNotificationReadView.as_view(), name='mark-notification-read'),
+    path('notifications/<int:pk>/', views.NotificationDetailView.as_view(), name='notification-detail'),
+    path('notifications/mark-read/', views.mark_notifications_read, name='mark-notifications-read'),
     
-    # Dashboard endpoints
-    path('dashboard/lecturer/', views.LecturerDashboardView.as_view(), name='lecturer-dashboard'),
-    path('dashboard/student/', views.StudentDashboardView.as_view(), name='student-dashboard'),
-    path('dashboard/admin/', views.AdminDashboardView.as_view(), name='admin-dashboard'),
+    # Analytics and Reports
+    path('analytics/enrollment-stats/', views.enrollment_statistics, name='enrollment-stats'),
+    path('analytics/course-popularity/', views.course_popularity, name='course-popularity'),
+    path('analytics/lecturer-workload/', views.lecturer_workload_analytics, name='lecturer-workload-analytics'),
+    
+    # Lecturer Attendance Analytics
+    path('attendance/lecturer-history/', views.lecturer_attendance_history, name='lecturer-attendance-history'),
+    path('attendance/lecturer-stats/', views.lecturer_attendance_stats, name='lecturer-attendance-stats'),
+    path('attendance/course-stats/', views.course_attendance_stats, name='course-attendance-stats'),
+    path('attendance/student-stats/', views.student_attendance_stats, name='student-attendance-stats'),
+    path('attendance/daily-stats/', views.daily_attendance_stats, name='daily-attendance-stats'),
 ] 

@@ -81,7 +81,7 @@ class AttendanceSession(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_sessions')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_attendance_sessions')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

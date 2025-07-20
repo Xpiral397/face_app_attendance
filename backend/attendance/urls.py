@@ -13,6 +13,7 @@ from .views import (
 
 urlpatterns = [
     path('', AttendanceListView.as_view(), name='attendance-list'),
+    path('history/', AttendanceListView.as_view(), name='attendance-history'),  # Alias for student history
     path('create/', AttendanceCreateView.as_view(), name='attendance-create'),
     path('<int:pk>/', AttendanceDetailView.as_view(), name='attendance-detail'),
     path('stats/', AttendanceStatsView.as_view(), name='attendance-stats'),

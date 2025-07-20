@@ -132,22 +132,22 @@ export const authApi = {
 // User Management API
 export const userApi = {
   getUsers: (page = 1) => 
-    apiClient.get(`/users/users/?page=${page}`),
+    apiClient.get(`/auth/users/?page=${page}`),
   
   createUser: (userData: UserCreate) => 
-    apiClient.post('/users/users/create/', userData),
+    apiClient.post('/auth/users/create/', userData),
   
   getUser: (id: number) => 
-    apiClient.get(`/users/users/${id}/`),
+    apiClient.get(`/auth/users/${id}/`),
   
   updateUser: (id: number, data: Partial<UserCreate>) => 
-    apiClient.put(`/users/users/${id}/`, data),
+    apiClient.put(`/auth/users/${id}/`, data),
   
   deleteUser: (id: number) => 
-    apiClient.delete(`/users/users/${id}/`),
+    apiClient.delete(`/auth/users/${id}/`),
   
   getUserStats: () => 
-    apiClient.get('/users/users/stats/'),
+    apiClient.get('/auth/users/stats/'),
 }
 
 // Course Management API

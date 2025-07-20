@@ -19,7 +19,7 @@ urlpatterns = [
     path('api/face/', include('face_recognition_app.urls')),
     path('api/reports/', include('reports.urls')),
     path('api/courses/', include('courses.urls')),
-    path('api/users/', include('accounts.urls')),
+    # Remove the duplicate users path - users should be accessed via /api/auth/
 ]
 
 # Serve media files in development

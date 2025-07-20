@@ -14,150 +14,22 @@ interface NavigationItem {
 }
 
 const navigationItems: NavigationItem[] = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer', 'student']
-  },
-  {
-    name: 'Course Management',
-    href: '/courses',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer'],
-    children: [
-      { name: 'All Courses', href: '/courses', icon: null, roles: ['admin', 'lecturer'] },
-      { name: 'My Assignments', href: '/courses/assignments', icon: null, roles: ['lecturer'] },
-      { name: 'Course Creation', href: '/courses/create', icon: null, roles: ['admin'] },
-      { name: 'College Management', href: '/colleges', icon: null, roles: ['admin'] },
-      { name: 'Department Management', href: '/departments', icon: null, roles: ['admin'] },
-    ]
-  },
-  {
-    name: 'My Courses',
-    href: '/my-courses',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
-    roles: ['student']
-  },
-  {
-    name: 'Class Sessions',
-    href: '/sessions',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer'],
-    children: [
-      { name: 'All Sessions', href: '/sessions', icon: null, roles: ['admin'] },
-      { name: 'Manage Sessions', href: '/sessions/manage', icon: null, roles: ['lecturer'] },
-    ]
-  },
-  {
-    name: 'Class Schedule',
-    href: '/schedule',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-2 13a2 2 0 002 2h6a2 2 0 002-2l-2-13M9 7h6" />
-      </svg>
-    ),
-    roles: ['student']
-  },
-  {
-    name: 'Attendance',
-    href: '/attendance',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer', 'student'],
-    children: [
-      { name: 'Mark Attendance', href: '/attendance/mark', icon: null, roles: ['student'] },
-      { name: 'Attendance History', href: '/attendance/history', icon: null, roles: ['admin', 'lecturer', 'student'] },
-      { name: 'Attendance Analytics', href: '/attendance/analytics', icon: null, roles: ['admin', 'lecturer'] },
-      { name: 'Manage Sessions', href: '/attendance/sessions', icon: null, roles: ['admin'] },
-    ]
-  },
-  {
-    name: 'Enrollment Management',
-    href: '/enrollment',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-      </svg>
-    ),
-    roles: ['admin', 'student']
-  },
-  {
-    name: 'Face Recognition',
-    href: '/face-registration',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer', 'student'],
-    children: [
-      { name: 'Register Face', href: '/face-registration', icon: null, roles: ['student'] },
-      { name: 'Face Recognition Logs', href: '/face/logs', icon: null, roles: ['admin', 'lecturer'] },
-      { name: 'Recognition Settings', href: '/face/settings', icon: null, roles: ['admin'] },
-      { name: 'Face Statistics', href: '/face/stats', icon: null, roles: ['admin', 'lecturer'] },
-    ]
-  },
-  {
-    name: 'Reports',
-    href: '/reports',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer'],
-    children: [
-      { name: 'Generate Reports', href: '/reports/generate', icon: null, roles: ['admin', 'lecturer'] },
-      { name: 'Download Reports', href: '/reports/download', icon: null, roles: ['admin', 'lecturer'] },
-      { name: 'Report Analytics', href: '/reports/analytics', icon: null, roles: ['admin'] },
-    ]
-  },
-  {
-    name: 'User Management',
-    href: '/users',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-      </svg>
-    ),
-    roles: ['admin'],
-    children: [
-      { name: 'All Users', href: '/users', icon: null, roles: ['admin'] },
-      { name: 'Pending Requests', href: '/pending-requests', icon: null, roles: ['admin'] },
-      { name: 'Create User', href: '/users/create', icon: null, roles: ['admin'] },
-      { name: 'User Statistics', href: '/users/stats', icon: null, roles: ['admin'] },
-    ]
-  },
-  {
-    name: 'Notifications',
-    href: '/notifications',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h8V9H4v2z" />
-      </svg>
-    ),
-    roles: ['admin', 'lecturer', 'student']
-  }
+  { name: 'Dashboard', href: '/dashboard', icon: null, roles: ['admin', 'lecturer'] },
+  { name: 'My Courses', href: '/my-courses', icon: null, roles: ['lecturer'] },
+  { name: 'My Courses', href: '/student-courses', icon: null, roles: ['student'] },
+  { name: 'Schedule', href: '/schedule', icon: null, roles: ['lecturer', 'student'] },
+  { name: 'Courses', href: '/courses', icon: null, roles: ['admin', 'lecturer'] },
+  { name: 'Attendance History', href: '/attendance/lecturer-history', icon: null, roles: ['lecturer'] },
+  { name: 'Attendance Analytics', href: '/attendance/lecturer-analytics', icon: null, roles: ['lecturer'] },
+  { name: 'Face Registration', href: '/face-registration', icon: null, roles: ['student', 'lecturer'] },
+  { name: 'Mark Attendance', href: '/attendance/mark', icon: null, roles: ['student'] },
+  { name: 'Student Attendance', href: '/attendance/history', icon: null, roles: ['student'] },
+  { name: 'Lecturer Management', href: '/lecturer-management', icon: null, roles: ['admin', 'lecturer'] },
+  { name: 'Course Creation', href: '/courses/create', icon: null, roles: ['admin'] },
+  { name: 'College Management', href: '/colleges', icon: null, roles: ['admin'] },
+  { name: 'Room Management', href: '/rooms', icon: null, roles: ['admin'] },
+  { name: 'User Management', href: '/users', icon: null, roles: ['admin'] },
+  { name: 'Notifications', href: '/notifications', icon: null, roles: ['admin', 'lecturer', 'student'] }
 ]
 
 interface NavigationProps {
@@ -193,6 +65,7 @@ export default function Navigation({ isOpen, onClose }: NavigationProps) {
   }
 
   const filteredNavigationItems = navigationItems.filter(item => isAuthorized(item.roles))
+  const isAdmin = user?.role === 'admin'
 
   return (
     <>
@@ -317,6 +190,55 @@ export default function Navigation({ isOpen, onClose }: NavigationProps) {
           </div>
         </div>
       </div>
+
+      {/* Admin Only Links */}
+      {isAdmin && (
+        <div className="lg:hidden fixed bottom-0 left-0 z-50 w-full bg-white shadow-lg">
+          <div className="flex justify-around p-2">
+            <Link
+              href="/users"
+              className={`flex flex-col items-center p-2 rounded-md transition-colors ${
+                pathname === '/users'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-2.239" />
+              </svg>
+              <span className="text-xs">Users</span>
+            </Link>
+
+            <Link
+              href="/rooms"
+              className={`flex flex-col items-center p-2 rounded-md transition-colors ${
+                pathname === '/rooms'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span className="text-xs">Rooms</span>
+            </Link>
+
+            <Link
+              href="/colleges"
+              className={`flex flex-col items-center p-2 rounded-md transition-colors ${
+                pathname === '/colleges'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              <span className="text-xs">Colleges</span>
+            </Link>
+          </div>
+        </div>
+      )}
     </>
   )
 } 

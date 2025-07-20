@@ -158,7 +158,7 @@ export default function CourseDetailPage() {
       const [facultiesResponse, departmentsResponse, lecturersResponse] = await Promise.all([
         apiClient.get('/courses/colleges/'),
         apiClient.get('/courses/departments/'),
-        apiClient.get('/users/users/?role=lecturer')
+        apiClient.get('/auth/users/?role=lecturer')
       ])
 
       const facultiesData = facultiesResponse?.results || facultiesResponse.data || []

@@ -33,8 +33,7 @@ interface Lecturer {
   id: number
   full_name: string
   email: string
-  lecturer_id: string
-}
+  lecturer_id: string}
 
 interface Assignment {
   id: number
@@ -70,8 +69,8 @@ export default function CourseAssignmentsPage() {
       setLoading(true)
       const [coursesResponse, lecturersResponse, assignmentsResponse] = await Promise.all([
         apiClient.get('/courses/courses/'),
-        apiClient.get('/users/users/?role=lecturer'),
-        apiClient.get('/courses/assignments/')
+        apiClient.get('/auth/users/?role=lecturer'),
+        apiClient.get('/courses/course-assignments/')
       ])
 
       setCourses(coursesResponse.data?.results || coursesResponse.data || [])
@@ -100,7 +99,7 @@ export default function CourseAssignmentsPage() {
         lecturer: Number(selectedLecturer)
       }
 
-      await apiClient.post('/courses/assignments/', assignmentData)
+      await apiClient.post('/courses/course-assignments/', assignmentData)
       setSuccess('Lecturer assigned successfully!')
       setShowAssignModal(false)
       setSelectedCourse(null)
@@ -120,7 +119,7 @@ export default function CourseAssignmentsPage() {
     try {
       const assignment = assignments.find(a => a.course === courseId)
       if (assignment) {
-        await apiClient.delete(`/courses/assignments/${assignment.id}/`)
+        await apiClient.delete(`/courses/course-assignments/${assignment.id}/`)
         setSuccess('Assignment removed successfully!')
         fetchData()
       }
