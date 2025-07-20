@@ -6524,3 +6524,7 @@ Not Found: /api/dashboard/admin/
 "GET /api/courses/courses/ HTTP/1.1" 200 12929
 "GET /api/courses/enrollments/ HTTP/1.1" 200 8237
 "GET /api/courses/courses/ HTTP/1.1" 200 12929
+C:\Users\USER\AIFaceRecognized\backend\courses\apps.py changed, reloading.
+Watching for file changes with StatReloader
+C:\Users\USER\AIFaceRecognized\backend\courses\signals.py changed, reloading.
+Watching for file changes with StatReloader
